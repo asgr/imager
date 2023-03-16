@@ -15,6 +15,7 @@ There are several ways of doing things in parallel with imager. One of them is t
 Parallelising from R is very easy (provided that what you want to do actually parallelises). Something that does parallelise easily is to run the same operations on different images, or on different image channels. 
 
 ```{r}
+library(imager)
 library(parallel)
 
 #A really big image
@@ -36,9 +37,7 @@ system.time(fun.par())
 
 Many CImg operations are parallelised natively. The parallelisation is optional and is only activated starting from a certain image size. The speed-ups are sublinear, meaning that unless your image is gigantic you won't gain much from throwing 200 cores at a problem. 
 
-
-
-By default OpenMP will grab all the CPU cores it can. You can control how many cores are accessed using ```OpenMPController::omp_set_num_threads```:
+By default OpenMP will grab all the CPU cores it can. To correctly use multiple threads users should set nthreads in cimg.use.openmp. You also need to be careful that this is not higher than the value in the system environment variable OMP_THREAD_LIMIT (this can be checked with Sys.getenv('OMP_THREAD_LIMIT')). The OMP_THREAD_LIMIT thread limit usually needs to be correctly set before launching R, so using Sys.setenv once a session has started is not certain to work.
 
 ```{r}
 library(imager)
@@ -48,26 +47,26 @@ a <- boats
 b <- imnoise(30,30) 
 fun <- function() convolve(a,b)
 #No parallelisation
-OpenMPController::omp_set_num_threads(1)
+cimg.use.openmp(nthreads = 1)
 microbenchmark(fun(),times=15)
 
 #2 cores
-OpenMPController::omp_set_num_threads(2)
+cimg.use.openmp(nthreads = 2)
 microbenchmark(fun(),times=15)
 
-#3 cores, etc.
-OpenMPController::omp_set_num_threads(3)
+#4 cores, etc.
+cimg.use.openmp(nthreads = 4)
 microbenchmark(fun(),times=15)
 ```
 
-If CImg's parallelisation doesn't seem to work on your machine, it's probably because you compiled the package with clang, which has patchy support for OpenMP. Recompile using gcc if possible.
+If CImg's parallelisation doesn't seem to work on your machine, it's probably because you compiled the package with Clang, which has patchy support for OpenMP. Recompile using gcc if possible. For macOS check here: https://mac.r-project.org/openmp/
 
 # Parallelisation in R vs. native parallelisation 
 
 Here's a simple benchmark: medianblur can be parallelised across image channels. First, the R version using mclapply:
 
 ```{r}
-OpenMPController::omp_set_num_threads(1)
+cimg.use.openmp(nthreads = 1)
 fun.R <- function() imsplit(boats,"c") %>% mclapply(function(v) medianblur(v,50),mc.cores=3)
 microbenchmark(fun.R(),times=20)
 ```
@@ -75,7 +74,7 @@ microbenchmark(fun.R(),times=20)
 Second, CImg's native version:
 
 ```{r}
-OpenMPController::omp_set_num_threads(3)
+cimg.use.openmp(nthreads = 4)
 fun.nat <- function() medianblur(boats,50)
 microbenchmark(fun.nat(),times=20)
 ```

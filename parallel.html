@@ -1,75 +1,65 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
 
 <head>
 
-<meta charset="utf-8">
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta charset="utf-8" />
 <meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
 
 
 <title>imager in parallel</title>
 
-<script src="parallel_files/jquery-1.11.3/jquery.min.js"></script>
+<script src="parallel_files/header-attrs-2.14/header-attrs.js"></script>
+<script src="parallel_files/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="parallel_files/bootstrap-3.3.5/css/readable.min.css" rel="stylesheet" />
 <script src="parallel_files/bootstrap-3.3.5/js/bootstrap.min.js"></script>
 <script src="parallel_files/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
 <script src="parallel_files/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
 <script src="parallel_files/navigation-1.1/tabsets.js"></script>
-<link href="parallel_files/highlightjs-1.1/default.css" rel="stylesheet" />
-<script src="parallel_files/highlightjs-1.1/highlight.js"></script>
+<link href="parallel_files/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="parallel_files/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
 
 <style type="text/css">code{white-space: pre;}</style>
-<style type="text/css">
-  pre:not([class]) {
-    background-color: white;
-  }
-</style>
 <script type="text/javascript">
-if (window.hljs && document.readyState && document.readyState === "complete") {
-   window.setTimeout(function() {
-      hljs.initHighlighting();
-   }, 0);
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
 }
 </script>
 
 
 
-<style type="text/css">
-h1 {
-  font-size: 34px;
-}
-h1.title {
-  font-size: 38px;
-}
-h2 {
-  font-size: 30px;
-}
-h3 {
-  font-size: 24px;
-}
-h4 {
-  font-size: 18px;
-}
-h5 {
-  font-size: 16px;
-}
-h6 {
-  font-size: 12px;
-}
-.table th:not([align]) {
-  text-align: left;
-}
-</style>
 
 
-</head>
 
-<body>
+
+
 
 <style type = "text/css">
 .main-container {
@@ -77,41 +67,103 @@ h6 {
   margin-left: auto;
   margin-right: auto;
 }
-code {
-  color: inherit;
-  background-color: rgba(0, 0, 0, 0.04);
-}
 img {
   max-width:100%;
-  height: auto;
 }
 .tabbed-pane {
   padding-top: 12px;
 }
+.html-widget {
+  margin-bottom: 20px;
+}
 button.code-folding-btn:focus {
   outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
 }
 </style>
 
 
 
-<div class="container-fluid main-container">
-
 <!-- tabsets -->
-<script>
-$(document).ready(function () {
-  window.buildTabsets("TOC");
-});
-</script>
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
 
 <!-- code folding -->
 
 
 
 
+</head>
+
+<body>
 
 
-<div class="fluid-row" id="header">
+<div class="container-fluid main-container">
+
+
+
+
+<div id="header">
 
 
 
@@ -121,17 +173,48 @@ $(document).ready(function () {
 
 <div id="TOC">
 <ul>
-<li><a href="#parallelising-from-r"><span class="toc-section-number">1</span> Parallelising from R</a></li>
-<li><a href="#native-parallelisation-cimg-and-openmp"><span class="toc-section-number">2</span> Native parallelisation: CImg and OpenMP</a></li>
-<li><a href="#parallelisation-in-r-vs.native-parallelisation"><span class="toc-section-number">3</span> Parallelisation in R vs. native parallelisation</a></li>
+<li><a href="#parallelising-from-r" id="toc-parallelising-from-r"><span
+class="toc-section-number">1</span> Parallelising from R</a></li>
+<li><a href="#native-parallelisation-cimg-and-openmp"
+id="toc-native-parallelisation-cimg-and-openmp"><span
+class="toc-section-number">2</span> Native parallelisation: CImg and
+OpenMP</a></li>
+<li><a href="#parallelisation-in-r-vs.-native-parallelisation"
+id="toc-parallelisation-in-r-vs.-native-parallelisation"><span
+class="toc-section-number">3</span> Parallelisation in R vs. native
+parallelisation</a></li>
 </ul>
 </div>
 
-<p><a href="http://sites.google.com/site/simonbarthelme">Simon Barthelmé</a> (GIPSA-lab, CNRS)</p>
-<p>There are several ways of doing things in parallel with imager. One of them is to use of R’s many packages for doing things in parallel (parallel, futures, etc.). The other one is to take advantage of CImg’s ative use of OpenMP.</p>
-<div id="parallelising-from-r" class="section level1">
-<h1><span class="header-section-number">1</span> Parallelising from R</h1>
-<p>Parallelising from R is very easy (provided that what you want to do actually parallelises). Something that does parallelise easily is to run the same operations on different images, or on different image channels.</p>
+<p><a href="http://sites.google.com/site/simonbarthelme">Simon
+Barthelmé</a> (GIPSA-lab, CNRS)</p>
+<p>There are several ways of doing things in parallel with imager. One
+of them is to use of R’s many packages for doing things in parallel
+(parallel, futures, etc.). The other one is to take advantage of CImg’s
+ative use of OpenMP.</p>
+<div id="parallelising-from-r" class="section level1" number="1">
+<h1><span class="header-section-number">1</span> Parallelising from
+R</h1>
+<p>Parallelising from R is very easy (provided that what you want to do
+actually parallelises). Something that does parallelise easily is to run
+the same operations on different images, or on different image
+channels.</p>
+<pre class="r"><code>library(imager)</code></pre>
+<pre><code>## Loading required package: magrittr</code></pre>
+<pre><code>## 
+## Attaching package: &#39;imager&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:magrittr&#39;:
+## 
+##     add</code></pre>
+<pre><code>## The following objects are masked from &#39;package:stats&#39;:
+## 
+##     convolve, spectrum</code></pre>
+<pre><code>## The following object is masked from &#39;package:graphics&#39;:
+## 
+##     frame</code></pre>
+<pre><code>## The following object is masked from &#39;package:base&#39;:
+## 
+##     save.image</code></pre>
 <pre class="r"><code>library(parallel)
 
 #A really big image
@@ -142,17 +225,28 @@ fun &lt;- function() imsplit(im,&quot;c&quot;) %&gt;% lapply(rank)
     
 system.time(fun())</code></pre>
 <pre><code>##    user  system elapsed 
-##  12.413   0.536  12.945</code></pre>
+##   8.004   0.219   8.230</code></pre>
 <pre class="r"><code>#Parallel version: use mclapply
 fun.par &lt;- function() imsplit(im,&quot;c&quot;) %&gt;% mclapply(rank,mc.cores=2)
 system.time(fun.par())</code></pre>
 <pre><code>##    user  system elapsed 
-##   4.790   0.608  10.250</code></pre>
+##   2.800   0.369   5.955</code></pre>
 </div>
-<div id="native-parallelisation-cimg-and-openmp" class="section level1">
-<h1><span class="header-section-number">2</span> Native parallelisation: CImg and OpenMP</h1>
-<p>Many CImg operations are parallelised natively. The parallelisation is optional and is only activated starting from a certain image size. The speed-ups are sublinear, meaning that unless your image is gigantic you won’t gain much from throwing 200 cores at a problem.</p>
-<p>By default OpenMP will grab all the CPU cores it can. You can control how many cores are accessed using <code>OpenMPController::omp_set_num_threads</code>:</p>
+<div id="native-parallelisation-cimg-and-openmp" class="section level1"
+number="2">
+<h1><span class="header-section-number">2</span> Native parallelisation:
+CImg and OpenMP</h1>
+<p>Many CImg operations are parallelised natively. The parallelisation
+is optional and is only activated starting from a certain image size.
+The speed-ups are sublinear, meaning that unless your image is gigantic
+you won’t gain much from throwing 200 cores at a problem.</p>
+<p>By default OpenMP will grab all the CPU cores it can. To correctly
+use multiple threads users should set nthreads in cimg.use.openmp. You
+also need to be careful that this is not higher than the value in the
+system environment variable OMP_THREAD_LIMIT (this can be checked with
+Sys.getenv(‘OMP_THREAD_LIMIT’)). The OMP_THREAD_LIMIT thread limit
+usually needs to be correctly set before launching R, so using
+Sys.setenv once a session has started is not certain to work.</p>
 <pre class="r"><code>library(imager)
 library(microbenchmark)
 #Let&#39;s do a big convolution
@@ -160,51 +254,53 @@ a &lt;- boats
 b &lt;- imnoise(30,30) 
 fun &lt;- function() convolve(a,b)
 #No parallelisation
-OpenMPController::omp_set_num_threads(1)</code></pre>
-<pre><code>## [[1]]
-## [1] 1</code></pre>
+cimg.use.openmp(nthreads = 1)</code></pre>
+<pre><code>## NULL</code></pre>
+<pre class="r"><code>microbenchmark(fun(),times=15)</code></pre>
+<pre><code>## Unit: milliseconds
+##   expr      min       lq     mean   median       uq      max neval
+##  fun() 758.5587 770.5574 793.5305 783.0165 816.8524 843.8794    15</code></pre>
+<pre class="r"><code>#2 cores
+cimg.use.openmp(nthreads = 2)</code></pre>
+<pre><code>## NULL</code></pre>
 <pre class="r"><code>microbenchmark(fun(),times=15)</code></pre>
 <pre><code>## Unit: milliseconds
 ##   expr      min      lq     mean   median       uq      max neval
-##  fun() 463.7745 465.425 469.6804 466.8861 468.3055 499.1592    15</code></pre>
-<pre class="r"><code>#2 cores
-OpenMPController::omp_set_num_threads(2)</code></pre>
-<pre><code>## [[1]]
-## [1] 2</code></pre>
+##  fun() 388.7225 395.259 403.4662 400.2312 405.8684 444.1365    15</code></pre>
+<pre class="r"><code>#4 cores, etc.
+cimg.use.openmp(nthreads = 4)</code></pre>
+<pre><code>## NULL</code></pre>
 <pre class="r"><code>microbenchmark(fun(),times=15)</code></pre>
 <pre><code>## Unit: milliseconds
-##   expr      min       lq     mean   median       uq      max neval
-##  fun() 250.1561 260.1025 262.2085 264.3445 266.5629 268.8653    15</code></pre>
-<pre class="r"><code>#3 cores, etc.
-OpenMPController::omp_set_num_threads(3)</code></pre>
-<pre><code>## [[1]]
-## [1] 3</code></pre>
-<pre class="r"><code>microbenchmark(fun(),times=15)</code></pre>
-<pre><code>## Unit: milliseconds
-##   expr      min       lq     mean   median       uq      max neval
-##  fun() 295.3284 297.5541 300.0099 299.4172 302.8274 306.2033    15</code></pre>
-<p>If CImg’s parallelisation doesn’t seem to work on your machine, it’s probably because you compiled the package with clang, which has patchy support for OpenMP. Recompile using gcc if possible.</p>
+##   expr      min       lq     mean   median      uq      max neval
+##  fun() 199.6942 202.2179 205.0651 204.1085 206.369 217.8173    15</code></pre>
+<p>If CImg’s parallelisation doesn’t seem to work on your machine, it’s
+probably because you compiled the package with Clang, which has patchy
+support for OpenMP. Recompile using gcc if possible. For macOS check
+here: <a href="https://mac.r-project.org/openmp/"
+class="uri">https://mac.r-project.org/openmp/</a></p>
 </div>
-<div id="parallelisation-in-r-vs.native-parallelisation" class="section level1">
-<h1><span class="header-section-number">3</span> Parallelisation in R vs. native parallelisation</h1>
-<p>Here’s a simple benchmark: medianblur can be parallelised across image channels. First, the R version using mclapply:</p>
-<pre class="r"><code>OpenMPController::omp_set_num_threads(1)</code></pre>
-<pre><code>## [[1]]
-## [1] 1</code></pre>
+<div id="parallelisation-in-r-vs.-native-parallelisation"
+class="section level1" number="3">
+<h1><span class="header-section-number">3</span> Parallelisation in R
+vs. native parallelisation</h1>
+<p>Here’s a simple benchmark: medianblur can be parallelised across
+image channels. First, the R version using mclapply:</p>
+<pre class="r"><code>cimg.use.openmp(nthreads = 1)</code></pre>
+<pre><code>## NULL</code></pre>
 <pre class="r"><code>fun.R &lt;- function() imsplit(boats,&quot;c&quot;) %&gt;% mclapply(function(v) medianblur(v,50),mc.cores=3)
 microbenchmark(fun.R(),times=20)</code></pre>
 <pre><code>## Unit: seconds
-##     expr      min      lq     mean   median       uq      max neval
-##  fun.R() 4.840825 5.21166 5.275059 5.291631 5.363318 5.467941    20</code></pre>
+##     expr      min       lq     mean  median       uq      max neval
+##  fun.R() 2.522276 2.573416 2.676955 2.65224 2.783309 2.861924    20</code></pre>
 <p>Second, CImg’s native version:</p>
-<pre class="r"><code>OpenMPController::omp_set_num_threads(3)</code></pre>
-<pre><code>## [[1]]
-## [1] 3</code></pre>
+<pre class="r"><code>cimg.use.openmp(nthreads = 4)</code></pre>
+<pre><code>## NULL</code></pre>
 <pre class="r"><code>fun.nat &lt;- function() medianblur(boats,50)
 microbenchmark(fun.nat(),times=20)</code></pre>
 <pre><code>## Unit: seconds
-##       expr      min       lq    mean   median       uq      max neval
-##  fun.nat() 5.140669 5.220139 5.39972 5.270974 5.475182 6.057458    20</code></pre>
+##       expr      min       lq     mean  median       uq      max neval
+##  fun.nat() 1.975586 1.980098 2.019698 2.00531 2.032463 2.142027    20</code></pre>
 <p>Pros and cons of using native parallelisation:</p>
 <ul>
 <li>Transparent</li>
@@ -214,11 +310,13 @@ microbenchmark(fun.nat(),times=20)</code></pre>
 <p>Pros and cons of parallelisation from R:</p>
 <ul>
 <li>More flexible (futures, multiple threads, etc.)</li>
-<li>Effective if you run a long chain of operations over many images</li>
+<li>Effective if you run a long chain of operations over many
+images</li>
 <li>Better cross-platform support</li>
 <li>Slightly less transparent and possibly slower</li>
 </ul>
-<p>Note that both types of parallelisation can be combined if you can spread the load over several machines.</p>
+<p>Note that both types of parallelisation can be combined if you can
+spread the load over several machines.</p>
 </div>
 
 
@@ -230,7 +328,7 @@ microbenchmark(fun.nat(),times=20)</code></pre>
 
 // add bootstrap table styles to pandoc tables
 function bootstrapStylePandocTables() {
-  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
 }
 $(document).ready(function () {
   bootstrapStylePandocTables();
@@ -239,12 +337,29 @@ $(document).ready(function () {
 
 </script>
 
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+
 <!-- dynamically load mathjax for compatibility with self-contained -->
 <script>
   (function () {
     var script = document.createElement("script");
     script.type = "text/javascript";
-    script.src  = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
     document.getElementsByTagName("head")[0].appendChild(script);
   })();
 </script>
