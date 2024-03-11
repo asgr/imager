@@ -37,4 +37,26 @@ typedef cimg_library::CImg<int> CIi;
 typedef cimg_library::CImg<float> CIf;
 typedef cimg_library::CImg<bool> CIb;
 
+namespace imager {
+
+/// Utility class that temporarily adjustes R index values
+/// so they make sense when used against C arrays.
+struct AutoAdjustIndices {
+  CId &_img;
+  bool _adjust;
+  AutoAdjustIndices(CId &img, bool adjust) :
+    _img(img), _adjust(adjust)
+  {
+    if (_adjust)
+      _img--;
+  }
+
+  ~AutoAdjustIndices() {
+    if (_adjust)
+      _img++;
+  }
+};
+
+} // namespace imager
+
 #endif
