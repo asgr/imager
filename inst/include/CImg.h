@@ -38609,8 +38609,26 @@ namespace cimg_library {
                                     "have different XYZ dimensions.",
                                     cimg_instance,
                                     p_warp._width,p_warp._height,p_warp._depth,p_warp._spectrum,p_warp._data);
-
       CImg<T> res(p_warp._width,p_warp._height,p_warp._depth,_spectrum);
+      do_warp(p_warp, res, mode, interpolation, boundary_conditions);
+      return res;
+    }
+
+    //! Warp image content by a warping field, with the user providing the output image \newinstance
+    template<typename t>
+    void do_warp(const CImg<t>& p_warp, CImg<t> &res, const unsigned int mode=0,
+                     const unsigned int interpolation=1, const unsigned int boundary_conditions=0) const {
+      if (is_empty() || !p_warp) return;
+      if (mode && !is_sameXYZ(p_warp))
+        throw CImgArgumentException(_cimg_instance
+                                    "warp(): Instance and specified relative warping field (%u,%u,%u,%u,%p) "
+                                    "have different XYZ dimensions.",
+                                    cimg_instance,
+                                    p_warp._width,p_warp._height,p_warp._depth,p_warp._spectrum,p_warp._data);
+      if (!res.is_sameXYZ(p_warp) || res._spectrum != _spectrum)
+        throw CImgArgumentException("warp(): output buffer has XYZ dimensions different warping field (%u,%u,%u) "
+                                    "or different spectrum than source image (%u)",
+                                    p_warp._width, p_warp._height, p_warp._depth, _spectrum);
 
       if (p_warp._spectrum==1) { // 1D warping
         if (mode>=3) { // Forward-relative warp
@@ -39422,7 +39440,6 @@ namespace cimg_library {
             }
         }
       }
-      return res;
     }
 
     //! Generate a 2D representation of a 3D image, with XY,XZ and YZ views.
