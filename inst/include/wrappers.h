@@ -1,6 +1,29 @@
 #ifndef CIMG_WRAP
 #define CIMG_WRAP
 
+namespace imager {
+
+template <typename RcppVector>
+inline void set_common_attributes(const char *image_type, RcppVector &out, Rcpp::IntegerVector dims)
+{
+    out.attr("class") = Rcpp::CharacterVector::create(image_type, "imager_array", "numeric");
+    out.attr("dim") = dims;
+}
+
+/// Set the class/dim attributes used by the imager package on the output numeric vector
+inline void set_cimg_attributes(Rcpp::NumericVector &out, Rcpp::IntegerVector dims)
+{
+    set_common_attributes("cimg", out, dims);
+}
+
+/// Set the class/dim attributes used by the imager package on the output logical vector
+inline void set_pixset_attributes(Rcpp::LogicalVector &out, Rcpp::IntegerVector dims)
+{
+    set_common_attributes("pixset", out, dims);
+}
+
+}
+
 
 //#ifndef CIMG_COMPILING
 namespace Rcpp {
@@ -37,9 +60,7 @@ namespace Rcpp {
     dims[2] = img.depth();
     dims[3] = img.spectrum();
     Rcpp::NumericVector out(img.begin(),img.end());
-    //    out.attr("class") = "cimg";
-    out.attr("class") = CharacterVector::create("cimg","imager_array","numeric");
-    out.attr("dim") = dims;
+    imager::set_cimg_attributes(out, dims);
     return Rcpp::wrap(out);
   }
 
@@ -52,9 +73,7 @@ namespace Rcpp {
     dims[2] = img.depth();
     dims[3] = img.spectrum();
     Rcpp::LogicalVector out(img.begin(),img.end());
-    //    out.attr("class") = "pixset";
-    out.attr("class") = CharacterVector::create("pixset","imager_array","numeric");
-    out.attr("dim") = dims;
+    imager::set_pixset_attributes(out, dims);
     return Rcpp::wrap(out);
   }
 
