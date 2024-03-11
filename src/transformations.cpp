@@ -1,4 +1,6 @@
 #include <imager.h>
+#include "wrappers_cimglist.h"
+
 using namespace Rcpp;
 using namespace cimg_library;
 
@@ -269,24 +271,24 @@ NumericVector resize(NumericVector im, int size_x=-100,  int size_y=-100,
 //' warpfield <- list(warp.x,warp.y) %>% imappend("c")
 //' warp(boats,warpfield,mode=1) %>% plot
 // [[Rcpp::export]]
-NumericVector warp(NumericVector im,NumericVector warpfield, 
+imager::OutputCId warp(NumericVector im,NumericVector warpfield,
 		   unsigned int mode=0,
 		   unsigned int interpolation=1, 
 		   unsigned int boundary_conditions=0)
 {
-    CId img = as<CId >(im);
-    CId wrp = as<CId >(warpfield);
+    auto img = sharedCImg(im);
+    auto wrp = sharedCImg(warpfield);
     try{
-      if ((mode==0) || (mode == 2)) //In R coordinates start at 1
-	{
-	  wrp--;
-	}
-      img.warp(wrp,mode,interpolation,boundary_conditions);
+      imager::AutoAdjustIndices _{wrp, mode == 0 || mode == 2};
+      imager::OutputCId output{wrp.width(), wrp.height(), wrp.depth(), img.spectrum()};
+      img.do_warp(wrp, output.img(), mode, interpolation, boundary_conditions);
+      return output;
     }
     catch(CImgException &e){
       forward_exception_to_r(e);
     }
-    return wrap(img);
+    // shouldn't happen
+    return imager::OutputCId{};
 }
 
 

@@ -56,7 +56,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // RGBtoHSV
-NumericVector RGBtoHSV(NumericVector im);
+imager::OutputCId RGBtoHSV(NumericVector im);
 RcppExport SEXP _imager_RGBtoHSV(SEXP imSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -1394,7 +1394,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // warp
-NumericVector warp(NumericVector im, NumericVector warpfield, unsigned int mode, unsigned int interpolation, unsigned int boundary_conditions);
+imager::OutputCId warp(NumericVector im, NumericVector warpfield, unsigned int mode, unsigned int interpolation, unsigned int boundary_conditions);
 RcppExport SEXP _imager_warp(SEXP imSEXP, SEXP warpfieldSEXP, SEXP modeSEXP, SEXP interpolationSEXP, SEXP boundary_conditionsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;

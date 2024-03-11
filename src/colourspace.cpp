@@ -47,11 +47,12 @@ NumericVector HSLtoRGB(NumericVector im) {
 //' @describeIn imager.colourspaces RGB to HSV conversion 
 //' @export
 // [[Rcpp::export]]
-NumericVector RGBtoHSV(NumericVector im) {
-  CId img = as<CId >(im);
+imager::OutputCId RGBtoHSV(NumericVector im) {
+  imager::OutputCId output{im};
+  CId &img = output.img();
   img *= 255;
   img.RGBtoHSV();
-  return wrap(img);
+  return output;
 }
 
 //' @describeIn imager.colourspaces HSV to RGB conversion 
