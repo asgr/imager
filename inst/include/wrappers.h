@@ -1,6 +1,8 @@
 #ifndef CIMG_WRAP
 #define CIMG_WRAP
 
+#include <tuple>
+
 namespace imager {
 
 template <typename RcppVector>
@@ -21,6 +23,41 @@ inline void set_pixset_attributes(Rcpp::LogicalVector &out, Rcpp::IntegerVector 
 {
     set_common_attributes("pixset", out, dims);
 }
+
+/// A CImg that shares storage with a Rcpp Vector.
+/// Operations done on the CImg will thus be visibile in the Vector,
+/// which can be then directly returned to R without a further copy.
+template <typename RawType, typename RcppType>
+class OutputCImg {
+
+public:
+    using CImgType = cimg_library::CImg<RawType>;
+
+    /// Create an empty object, no operations should be performed on such instance.
+    OutputCImg();
+
+    /// Create a CImg and an Rcpp vector sharing storage.
+    /// The size and initial contents of the shared storage are copied from the input vector.
+    OutputCImg(const RcppType &input);
+
+    /// Create a CImg and an Rcpp vector sharing storage.
+    /// The size of the shared storage is determined from the given parameters.
+    OutputCImg(int width, int height, int depth, int spectrum);
+
+    /// A reference to the CImg object to perform operations on it
+    CImgType &img() { return std::get<0>(_data); }
+
+    /// The output Rcpp vector sharing storage with the CImg instance
+    RcppType rcpp_vector() const { return std::get<1>(_data); }
+
+    /// C++ -> R integration via Rcpp
+    operator SEXP() const { return Rcpp::wrap(rcpp_vector()); }
+
+private:
+    std::tuple<CImgType, RcppType> _data;
+};
+
+using OutputCId = OutputCImg<double, Rcpp::NumericVector>;
 
 }
 
