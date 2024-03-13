@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <array>
 #include <cassert>
 #include <numeric>
@@ -63,7 +64,7 @@ namespace imager {
 
 static std::array<unsigned int, 4> get_4dims(const std::array<int, 4> &dims)
 {
-    assert(std::all(dims.begin(), dims.end(), [](int value) { return value >= 0; }));
+    assert(std::all_of(dims.begin(), dims.end(), [](int value) { return value >= 0; }));
     std::array<unsigned int, 4> output;
     std::copy(dims.begin(), dims.end(), output.begin());
     return output;
@@ -75,7 +76,7 @@ static std::array<unsigned int, 4> get_4dims(const Rcpp::NumericVector &input)
     if (dims.length() < 4) {
         Rcpp::stop("Expecting a four-dimensional array");
     }
-    assert(std::all(dims.begin(), dims.end(), [](int value) { return value >= 0; }));
+    assert(std::all_of(dims.begin(), dims.end(), [](int value) { return value >= 0; }));
     using uint = unsigned int;
     return {uint(dims[0]), uint(dims[1]), uint(dims[2]), uint(dims[3])};
 }
