@@ -63,7 +63,7 @@ namespace imager {
 
 static std::array<unsigned int, 4> get_4dims(const std::array<int, 4> &dims)
 {
-    assert(std::all(dims.begin(), dims.end(), [](int value) { return value >= 0; ));
+    assert(std::all(dims.begin(), dims.end(), [](int value) { return value >= 0; }));
     std::array<unsigned int, 4> output;
     std::copy(dims.begin(), dims.end(), output.begin());
     return output;
