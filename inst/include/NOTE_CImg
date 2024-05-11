@@ -12,6 +12,7 @@ Changes are listed newest first.
 
 * Increase buffer used for sprintf output, caught by gcc 14.
 * Avoid referring to null stdout, caught by gcc 14.
+* Avoid potential null dereferences, caught by gcc 13 and 14.
 
 01/03/2024
 ----------

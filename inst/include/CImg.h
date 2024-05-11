@@ -29012,7 +29012,9 @@ namespace cimg_library {
             for (unsigned int k = 0; k<siz0; ++k) str[k] = (char)mp.mem[ptr++];
             str[siz0] = 0;
             cimg::strellipsize(str,1024,false);
-            std::fprintf(cimg::output()," ] = '%s' (size: %u)",str._data,siz0);
+            if (str._data != nullptr) {
+              std::fprintf(cimg::output()," ] = '%s' (size: %u)",str._data,siz0);
+            }
           } else std::fprintf(cimg::output()," ] (size: %u)",siz0);
           std::fflush(cimg::output());
           cimg::mutex(6,0);
@@ -58253,7 +58255,9 @@ namespace cimg_library {
       load_analyze(command);
       std::remove(command);
       cimg::split_filename(command,body);
-      cimg_snprintf(command,command._width,"%s.img",body._data);
+      if (body._data != nullptr) {
+        cimg_snprintf(command,command._width,"%s.img",body._data);
+      }
       std::remove(command);
       return *this;
     }
