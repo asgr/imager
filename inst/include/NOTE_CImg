@@ -7,6 +7,11 @@ have changed them in some newer release.
 
 Changes are listed newest first.
 
+11/05/2024
+----------
+
+* Increase buffer used for sprintf output, caught by gcc 14.
+
 01/03/2024
 ----------
 

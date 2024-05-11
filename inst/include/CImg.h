@@ -29237,7 +29237,7 @@ namespace cimg_library {
           sizs = (unsigned int)mp.opcode[4];
         std::memset(ptrd,0,sizd*sizeof(double));
         const int nb_digits = (int)_mp_arg(5);
-        CImg<charT> format(8);
+        CImg<charT> format(15);
         switch (nb_digits) {
         case -1 : std::strcpy(format,"%g"); break;
         case 0 : std::strcpy(format,"%.17g"); break;
