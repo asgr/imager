@@ -305,7 +305,7 @@ NumericVector reduce_med(List x, bool na_rm=false, bool doquan=false, double pro
 #else
   int num_threads = 1;
 #endif
-  std::vector<std::vector<double>> vectors;
+  std::vector<std::vector<double> > vectors;
   vectors.reserve(num_threads);
   for (int i = 0; i < num_threads; i++)
     vectors.emplace_back(n);
