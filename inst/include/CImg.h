@@ -29012,7 +29012,9 @@ namespace cimg_library {
             for (unsigned int k = 0; k<siz0; ++k) str[k] = (char)mp.mem[ptr++];
             str[siz0] = 0;
             cimg::strellipsize(str,1024,false);
-            std::fprintf(cimg::output()," ] = '%s' (size: %u)",str._data,siz0);
+            if (str._data != nullptr) {
+              std::fprintf(cimg::output()," ] = '%s' (size: %u)",str._data,siz0);
+            }
           } else std::fprintf(cimg::output()," ] (size: %u)",siz0);
           std::fflush(cimg::output());
           cimg::mutex(6,0);
@@ -29237,7 +29239,7 @@ namespace cimg_library {
           sizs = (unsigned int)mp.opcode[4];
         std::memset(ptrd,0,sizd*sizeof(double));
         const int nb_digits = (int)_mp_arg(5);
-        CImg<charT> format(8);
+        CImg<charT> format(15);
         switch (nb_digits) {
         case -1 : std::strcpy(format,"%g"); break;
         case 0 : std::strcpy(format,"%.17g"); break;
@@ -58253,7 +58255,9 @@ namespace cimg_library {
       load_analyze(command);
       std::remove(command);
       cimg::split_filename(command,body);
-      cimg_snprintf(command,command._width,"%s.img",body._data);
+      if (body._data != nullptr) {
+        cimg_snprintf(command,command._width,"%s.img",body._data);
+      }
       std::remove(command);
       return *this;
     }
@@ -66080,7 +66084,12 @@ namespace cimg_library {
       else if (!cimg::strcasecmp(ext,"gz")) return save_gzip_external(fn);
       else {
         if (_width==1) _data[0].save(fn,-1);
-        else cimglist_for(*this,l) { _data[l].save(fn,is_stdout?-1:l); if (is_stdout) std::fputc(EOF,cimg::_stdout()); }
+        else cimglist_for(*this,l) {
+          _data[l].save(fn,is_stdout?-1:l);
+#ifndef cimg_use_r
+           if (is_stdout) std::fputc(EOF,cimg::_stdout());
+#endif
+        }
       }
       return *this;
     }
