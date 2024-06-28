@@ -17,12 +17,11 @@ Description: Fast image processing for images in up to 4 dimensions (two spatial
     processing.
 License: LGPL-3
 Imports:
-    Rcpp (>= 1.0.0), methods, stringr, png, jpeg, readbitmap, grDevices, purrr, downloader, igraph
+    Rcpp (>= 1.0.0), methods, stringr, grDevices, purrr, downloader
 Depends:
     R (>= 4.0.0), magrittr
 URL: https://asgr.github.io/imager/, https://github.com/asgr/imager/
 BugReports: https://github.com/asgr/imager/issues
-SystemRequirements: fftw3, libtiff, X11
 LinkingTo: Rcpp
 LazyData: true
 RoxygenNote: 7.3.1
