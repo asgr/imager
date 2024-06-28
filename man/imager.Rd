@@ -2,8 +2,8 @@
 % Please edit documentation in R/cimg_class.R
 \docType{package}
 \name{imager}
-\alias{imager}
 \alias{imager-package}
+\alias{imager}
 \title{imager: an R library for image processing, based on CImg}
 \description{
 CImg by David Tschumperle is a C++ library for image processing. It provides most common functions for image manipulation and filtering, as well as some advanced algorithms. imager makes these functions accessible from R and adds many utilities for accessing and working with image data from R.
