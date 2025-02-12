@@ -5,7 +5,7 @@
 ##' You need to have ffmpeg on your path for this to work. This function uses ffmpeg to split the video into individual frames, which are then loaded as images and recombined.
 ##' Videos are memory-intensive, and load.video performs a safety check before loading a video that would be larger than maxSize in memory (default 1GB)
 ##' @param fname file to load
-##' @param maxSize max. allowed size in memory, in GB (default max 1GB). 
+##' @param maxSize max. allowed size in memory, in GB (default max 1GB).
 ##' @param skip.to skip to a certain point in time (in sec., or "hh:mm::ss" format)
 ##' @param frames number of frames to load (default NULL, all)
 ##' @param fps frames per second (default NULL, determined automatically)
@@ -15,7 +15,7 @@
 ##' @seealso save.video, make.video
 ##' @examples
 ##' \dontshow{cimg.limit.openmp()}
-##' 
+##'
 ##' fname <- system.file('extdata/tennis_sif.mpeg',package='imager')
 ##' ##Not run
 ##' ## load.video(fname) %>% play
@@ -31,7 +31,7 @@ load.video.internal <- function(fname,maxSize=1,skip.to=0,frames=NULL,fps=NULL,e
     dd <- paste0(tempdir(),"/vid")
     if (!is.null(frames)) extra.args <- sprintf("%s -vframes %i ",extra.args,frames)
     if (!is.null(fps)) extra.args <- sprintf("%s -vf fps=%.4d ",extra.args,fps)
-    
+
     arg <- sprintf("-i %s %s -ss %s ",fname,extra.args,as.character(skip.to)) %>% paste0(dd,"/image-%d.bmp")
     tryCatch({
     dir.create(dd)
@@ -53,23 +53,25 @@ load.video.internal <- function(fname,maxSize=1,skip.to=0,frames=NULL,fps=NULL,e
     {
         out <- map_il(fls,load.image) %>% imappend("z")
         out
-        
+
     } },
     finally=unlink(dd,recursive=TRUE))
-    
+
 }
 
 ##' Load image from file or URL
 ##'
+##' PNG, JPEG and BMP are supported via the readbitmap package, WEBP is
+##' supported via the webp package (with ImageMagick backup). You'll need to
+##' install ImageMagick for other formats. If the path is actually a URL, it
+##' should start with http(s) or ftp(s).
 ##'
-##' PNG, JPEG and BMP are supported via the readbitmap package. You'll need to install ImageMagick for other formats. If the path is actually a URL, it should start with http(s) or ftp(s). 
-##' 
 ##' @param file path to file or URL
 ##' @return an object of class 'cimg'
 ##' @examples
 ##' \dontshow{cimg.limit.openmp()}
 ##' #Find path to example file from package
-##' fpath <- system.file('extdata/Leonardo_Birds.jpg',package='imager') 
+##' fpath <- system.file('extdata/Leonardo_Birds.jpg',package='imager')
 ##' im <- load.image(fpath)
 ##' plot(im)
 ##' #Load the R logo directly from the CRAN webpage
@@ -79,7 +81,7 @@ load.image <- function(file) wrap.url(file,load.image.internal)
 
 load.image.internal <- function(file)
 {
-    fext <- fileext(file)
+    fext <- tolower(fileext(file))
     if (fext %in% c('png','bmp','jpeg','jpg'))
     {
         bmp <- read.bitmap(file)
@@ -94,10 +96,16 @@ load.image.internal <- function(file)
         {
             dim(bmp) <- c(dim(bmp)[1:2],1,dim(bmp)[3]) #Make array 4D
         }
-        else 
+        else
         {
             dim(bmp) <- c(dim(bmp),1,1)
         }
+        bmp <- cimg(bmp) %>% mirror("x") %>% imrotate(-90)
+        bmp
+    }
+    else if (fext %in% "webp" && requireNamespace("webp", quietly = TRUE)) {
+        bmp <- webp::read_webp(source = file, numeric = TRUE)
+        dim(bmp) <- c(dim(bmp)[1:2],1,dim(bmp)[3]) #Make array 4D
         bmp <- cimg(bmp) %>% mirror("x") %>% imrotate(-90)
         bmp
     }
@@ -158,7 +166,7 @@ has.ffmpeg <- function()
 
 has.magick <- function()
 {
-    test.magick <- c('conjure','montage','magick') %>% Sys.which %>% map_lgl(function(v) nchar(v) > 0) 
+    test.magick <- c('conjure','montage','magick') %>% Sys.which %>% map_lgl(function(v) nchar(v) > 0)
     any(test.magick)
 }
 
@@ -191,11 +199,11 @@ load.jpeg <- function(file)
 
 ##' Save image
 ##'
-##' You'll need ImageMagick for formats other than PNG and JPEG. 
+##' You'll need ImageMagick for formats other than PNG and JPEG.
 ##'
 ##' @param im an image (of class cimg)
 ##' @param file path to file. The format is determined by the file's name
-##' @param quality (JPEG only) default 0.7. Higher quality means less compression. 
+##' @param quality (JPEG only) default 0.7. Higher quality means less compression.
 ##' @return nothing
 ##' @seealso save.video
 ##' @export
@@ -241,7 +249,7 @@ save.image <- function(im,file,quality=.7)
 
 save.png <- function(im,file)
     {
-        convert.im.toPNG(im) %>% png::writePNG(file) 
+        convert.im.toPNG(im) %>% png::writePNG(file)
     }
 
 save.jpeg <- function(im,file,quality=.7)
@@ -255,7 +263,7 @@ convert.im.toPNG <- function(A)
             {
                 A <-  rn(A)
             }
-        A <- imrotate(A,90) %>% mirror("x") 
+        A <- imrotate(A,90) %>% mirror("x")
         dim(A) <- dim(A)[-3]
         A
     }
@@ -303,7 +311,7 @@ load.example <- function(name)
 ##' Make/save a video using ffmpeg
 ##'
 ##' You need to have ffmpeg on your path for this to work. This function uses ffmpeg to combine individual frames into a video.
-##' save.video can be called directly with an image or image list as input. 
+##' save.video can be called directly with an image or image list as input.
 ##' make.video takes as argument a directory that contains a sequence of images representing individual frames to be combined into a video.
 ##' @param im an image or image list
 ##' @param fname name of the output file. The format is determined automatically from the name (example "a.mpeg" will have MPEG format)
@@ -346,12 +354,12 @@ save.video <- function(im,fname,...)
     dd <- paste0(tempdir(),"/vid")
     tryCatch({
         dir.create(dd)
-        im <- if (is.imlist(im)) im else imsplit(im,"z") 
+        im <- if (is.imlist(im)) im else imsplit(im,"z")
         nms <- sprintf("%s/image-%i.png",dd,seq_along(im))
         purrr::map2(im,nms,~ save.png(.x,.y))
         make.video(dname=dd,fname=fname,...)
     }, finally=unlink(dd,recursive=TRUE))
-    
+
 }
 
 #borrowed from pkgmaker::file_extension
@@ -360,12 +368,12 @@ fileext <- function(f)
     sub(".*\\.([^.]{3,4})$", "\\1", f) %>% tolower
 }
 
-                    
+
 ##' Load all images in a directory
 ##'
-##' Load all images in a directory and return them as an image list. 
+##' Load all images in a directory and return them as an image list.
 ##' @param path directory to load from
-##' @param pattern optional: file pattern (ex. *jpg). Default NULL, in which case we look for file extensions png,jpeg,jpg,tif,bmp. 
+##' @param pattern optional: file pattern (ex. *jpg). Default NULL, in which case we look for file extensions png,jpeg,jpg,tif,bmp.
 ##' @param quiet if TRUE, loading errors are quiet. If FALSE, they are displayed. Default FALSE
 ##' @return an image list
 ##' @author Simon Barthelme

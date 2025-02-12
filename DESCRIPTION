@@ -25,10 +25,18 @@ BugReports: https://github.com/asgr/imager/issues
 SystemRequirements: fftw3, libtiff, X11
 LinkingTo: Rcpp
 LazyData: true
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.2
 Suggests:
+    Cairo,
+    dplyr,
+    ggplot2,
     knitr,
-    rmarkdown, ggplot2, dplyr, scales,
-    testthat, raster, spatstat.geom, magick, Cairo
+    magick,
+    raster,
+    rmarkdown,
+    scales,
+    testthat,
+    spatstat.geom,
+    webp
 VignetteBuilder: knitr
 Encoding: UTF-8

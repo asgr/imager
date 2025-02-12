@@ -1,3 +1,7 @@
+# imager development version
+
+* Added support for .webp format
+
 # imager 0.41.2 Minor release
 
 * Fixed bug in imsub: imsub had a nasty side-effect, that effectively redefined variables "x",y","z", and "cc" if they happened to exist in the current environment. 
