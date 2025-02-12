@@ -2,7 +2,7 @@
 #'
 #' CImg by David Tschumperle is a C++ library for image processing. It provides most common functions for image manipulation and filtering, as well as some advanced algorithms. imager makes these functions accessible from R and adds many utilities for accessing and working with image data from R.
 #' You should install ImageMagick if you want support for image formats beyond PNG and JPEG, and ffmpeg if you need to work with videos (in which case you probably also want to take a look at experimental package imagerstreams on github).
-#' Package documentation is available at http://asgr.github.io/imager/. 
+#' Package documentation is available at http://asgr.github.io/imager/.
 #' @docType package
 #' @name imager
 "_PACKAGE"
@@ -29,12 +29,12 @@ index.coords <- list("x"=1,"y"=2,"z"=3,"c"=4,"cc"=4)
 ## CRAN sometimes issues spurious warnings about undefined variables
 utils::globalVariables(c(".", "%>%","x","y","z","cc","value"))
 
-##' cimg is a class for storing image or video/hyperspectral data.  It is designed to provide easy interaction with the CImg library, but in order to use it you need to be aware of how CImg wants its image data stored. 
+##' cimg is a class for storing image or video/hyperspectral data.  It is designed to provide easy interaction with the CImg library, but in order to use it you need to be aware of how CImg wants its image data stored.
 ##' Images have up to 4 dimensions, labelled x,y,z,c. x and y are the usual spatial dimensions, z is a depth dimension (which would correspond to time in a movie), and c is a colour dimension. Images are stored linearly in that order, starting from the top-left pixel and going along *rows* (scanline order).
 ##' A colour image is just three R,G,B channels in succession. A sequence of N images is encoded as R1,R2,....,RN,G1,...,GN,B1,...,BN where R_i is the red channel of frame i.
-##' The number of pixels along the x,y,z, and c axes is called (in that order), width, height, depth and spectrum. 
-##' NB: Logical and integer values are automatically converted to type double. NAs are not supported by CImg, so you should manage them on the R end of things. 
-##' @title Create a cimg object 
+##' The number of pixels along the x,y,z, and c axes is called (in that order), width, height, depth and spectrum.
+##' NB: Logical and integer values are automatically converted to type double. NAs are not supported by CImg, so you should manage them on the R end of things.
+##' @title Create a cimg object
 ##' @param X a four-dimensional numeric array
 ##' @return an object of class cimg
 ##' @author Simon Barthelme
@@ -62,7 +62,7 @@ is.cimg <- function(x) is(x,"cimg")
 ##' Various shortcuts for extracting colour channels, frames, etc
 ##'
 ##' @param im an image
-##' @param index frame index 
+##' @param index frame index
 ##' @name cimg.extract
 ##' @examples
 ##' \dontshow{cimg.limit.openmp()}
@@ -78,7 +78,7 @@ is.cimg <- function(x) is(x,"cimg")
 NULL
 
 ##' Colour space conversions in imager
-##' 
+##'
 ##' All functions listed here assume the input image has three colour channels (spectrum(im) == 3)
 ##' @name imager.colourspaces
 ##' @param im an image
@@ -89,7 +89,7 @@ NULL
 ##' If you want to control precisely how numerical values are turned into colours for plotting, you need to specify a colour scale using the colourscale argument (see examples). Otherwise the default is "gray" for grayscale images, "rgb" for colour. These expect values in [0..1], so the default is to rescale the data to [0..1]. If you wish to over-ride that behaviour, set rescale=FALSE.
 ##' See examples for an explanation.
 ##' If the image is one dimensional (i.e., a simple row or column image), then pixel values will be plotted as a line.
-##' @param x the image 
+##' @param x the image
 ##' @param frame which frame to display, if the image has depth > 1
 ##' @param rescale rescale pixel values so that their range is [0,1]
 ##' @param colourscale,colorscale an optional colour scale (default is gray or rgb)
@@ -109,7 +109,7 @@ NULL
 ##' @export
 ##' @examples
 ##' \dontshow{cimg.limit.openmp()}
-##' plot(boats,main="Boats") 
+##' plot(boats,main="Boats")
 ##' plot(boats,axes=FALSE,xlab="",ylab="")
 ##'
 ##' #Pixel values are rescaled to 0-1 by default, so that the following two plots are identical
@@ -181,12 +181,13 @@ plot.cimg <- function(x,frame,xlim=c(1,width(x)),ylim=c(height(x),1),xlab="x",yl
         {
             stop("Invalid value for parameter asp")
         }
-        
+
     }
     invisible(x)
 }
 
 #Plots one-dimensional images
+#' @exportS3Method NULL
 plot.singleton <- function(x,...)
 {
     varying <- if (width(x) == 1) "y" else "x"
@@ -198,7 +199,7 @@ plot.singleton <- function(x,...)
     else if (spectrum(x) ==3)
     {
         ylim <- range(x)
-        
+
         plot(1:l,1:l,type="n",xlab=varying,ylim=ylim,ylab="Pixel value",...)
         cols <- c("red","green","blue")
 
@@ -272,11 +273,11 @@ gsdim <- function(im)
 
 ##' Split a video into separate frames
 ##'
-##' @param im an image 
+##' @param im an image
 ##' @param index which channels to extract (default all)
 ##' @param drop if TRUE drop extra dimensions, returning normal arrays and not cimg objects
 ##' @seealso channels
-##' @return a list of frames 
+##' @return a list of frames
 ##' @export
 frames <- function(im,index,drop=FALSE)
     {
@@ -307,7 +308,7 @@ frame <- function(im,index)
 
 ##' Split a colour image into a list of separate channels
 ##'
-##' @param im an image 
+##' @param im an image
 ##' @param index which channels to extract (default all)
 ##' @param drop if TRUE drop extra dimensions, returning normal arrays and not cimg objects
 ##' @seealso frames
@@ -386,7 +387,7 @@ imrow <- function(im,y)
 ##' @export
 channel <- function(im,ind)
     {
-        im[,,,ind,drop=FALSE] 
+        im[,,,ind,drop=FALSE]
     }
 
 ##' @describeIn cimg.extract Extract red channel
@@ -457,7 +458,7 @@ color.at <- function(im,x,y,z=1)
         im
     }
 
-
+#' @exportS3Method NULL
 all.names <- function(..., na.rm)
     {
   cl = list(...)[[1]]
@@ -489,7 +490,7 @@ all.names <- function(..., na.rm)
 ##' imsub selects an image part based on coordinates: it allows you to select a subset of rows, columns, frames etc. Refer to the examples to see how it works
 ##'
 ##' subim is an alias defined for backward-compatibility.
-##' 
+##'
 ##' @param im an image
 ##' @param ... various conditions defining a rectangular image region
 ##' @return an image with some parts cut out
@@ -519,7 +520,7 @@ imsub <- function(im,...)
         Reduce(function(a,b) subs(a,b,consts,envir=env),l,init=im)
     }
 
-##' @describeIn imsub alias for imsub 
+##' @describeIn imsub alias for imsub
 ##' @export
 subim <- imsub
 
@@ -554,7 +555,7 @@ subs <- function(im,cl,consts,envir=parent.frame())
                     {
                         (as.array(im)[,,inds,,drop=FALSE]) %>% cimg
                     }
-                else 
+                else
                     {
                         (as.array(im)[,,,inds,drop=FALSE]) %>% cimg
                     }
@@ -570,7 +571,7 @@ subs <- function(im,cl,consts,envir=parent.frame())
 ##' Remove empty dimensions from an array
 ##'
 ##' Works just like Matlab's squeeze function: if anything in dim(x) equals one the corresponding dimension is removed
-##' 
+##'
 ##' @param x an array
 ##' @export
 ##' @examples
@@ -587,7 +588,7 @@ squeeze <- function(x) {
 ##' Add colour channels to a grayscale image or pixel set
 ##'
 ##' @param im a grayscale image
-##' @param simple if TRUE just stack three copies of the grayscale image, if FALSE treat the image as the L channel in an HSL representation. Default TRUE. For pixel sets this option makes no sense and is ignored. 
+##' @param simple if TRUE just stack three copies of the grayscale image, if FALSE treat the image as the L channel in an HSL representation. Default TRUE. For pixel sets this option makes no sense and is ignored.
 ##' @return an image of class cimg
 ##' @author Simon Barthelme
 ##' @examples
@@ -624,12 +625,12 @@ inda <- list('x'=1,'y'=2,'z'=3,'c'=4)
 
 ##' Pad image with n pixels along specified axis
 ##'
-##' 
+##'
 ##' @param im the input image
-##' @param nPix how many pixels to pad with 
-##' @param axes which axes to pad along 
+##' @param nPix how many pixels to pad with
+##' @param axes which axes to pad along
 ##' @param pos -1: prepend 0: center 1: append
-##' @param val colour of the padded pixels (default 0 in all channels). Can be a string for colour images, e.g. "red", or "black". 
+##' @param val colour of the padded pixels (default 0 in all channels). Can be a string for colour images, e.g. "red", or "black".
 ##' @return a padded image
 ##' @author Simon Barthelme
 ##' @examples
@@ -721,10 +722,10 @@ get.mask <- function(im,expr)
 ##' ##interactive only:
 ##' ##plot(1:10)
 ##' ###Make a plot of the plot
-##' ##capture.plot() %>% plot 
+##' ##capture.plot() %>% plot
 ##' @export
 capture.plot <- function()
-    {   
+    {
         rst <- dev.capture(native=FALSE)
         if(is.null(rst)){
           stop("dev.capture failed (no compatible device found)")
@@ -743,9 +744,9 @@ capture.plot <- function()
 ##' Replace part of an image with another
 ##'
 ##' These replacement functions let you modify part of an image (for example, only the red channel).
-##' Note that cimg objects can also be treated as regular arrays and modified using the usual [] operator. 
+##' Note that cimg objects can also be treated as regular arrays and modified using the usual [] operator.
 ##' @name imager.replace
-##' @param x an image to be modified 
+##' @param x an image to be modified
 ##' @param value the image to insert
 ##' @param ind an index
 ##' @seealso imdraw
@@ -840,7 +841,7 @@ NULL
 ##' Array subset operator for cimg objects
 ##'
 ##' Internally cimg objects are 4D arrays (stored in x,y,z,c mode) but often one doesn't need all dimensions. This is the case for instance when working on grayscale images, which use only two. The array subset operator works like the regular array [] operator, but it won't force you to use all dimensions.
-##' There are easier ways of accessing image data, for example imsub, channels, R, G, B, and the like. 
+##' There are easier ways of accessing image data, for example imsub, channels, R, G, B, and the like.
 ##' @param x an image (cimg object)
 ##' @param drop if true return an array, otherwise return an image object (default FALSE)
 ##' @param ... subsetting arguments
@@ -863,7 +864,7 @@ NULL
 `[.cimg` <- function(x,...) {
     args <- as.list(substitute(list(...)))[-1L];
     drop <- TRUE
-    
+
     hasdrop <- ("drop"%in%names(args))
     if (hasdrop)
     {
@@ -880,7 +881,7 @@ NULL
     else if (l<=4)
     {
         d <- dim(x)
-        
+
         ar <- list(1,1,1,1)
         nsd <- which(dim(x) > 1)
         if (l == length(nsd))
@@ -914,7 +915,7 @@ NULL
 ##' @export
 `[<-.cimg` <- function(x,...,value) {
     args <- as.list(substitute(list(...)))[-1L];
-    l <- length(args) 
+    l <- length(args)
 
     #Call default method for arrays
     if (l==1 | l ==4)
@@ -924,7 +925,7 @@ NULL
     else if (l<=4)
     {
         d <- dim(x)
-        
+
         ar <- list(1,1,1,1)
         nsd <- which(dim(x) > 1)
         if (l == length(nsd))
@@ -956,8 +957,8 @@ NULL
 #' @export
 #' @examples
 #' \dontshow{cimg.limit.openmp()}
-#' ##Not run: interactive only 
-#' ##display(boats,TRUE) #Normalisation on 
+#' ##Not run: interactive only
+#' ##display(boats,TRUE) #Normalisation on
 #' ##display(boats/2,TRUE) #Normalisation on, so same as above
 #' ##display(boats,FALSE) #Normalisation off
 #' ##display(boats/2,FALSE) #Normalisation off, so different from above

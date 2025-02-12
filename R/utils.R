@@ -455,6 +455,7 @@ threshold <- function(im,thr="auto",approx=TRUE,adjust=1)
     }
 
 #Find a cut-off point for a bimodal distribution using kmeans (similar to Otsu's method)
+#' @exportS3Method NULL
 cut.kmeans <- function(x)
 {
     km <- kmeans(x,2)
