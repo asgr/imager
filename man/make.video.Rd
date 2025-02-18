@@ -35,7 +35,7 @@ save.video(im, fname, ...)
 }
 \description{
 You need to have ffmpeg on your path for this to work. This function uses ffmpeg to combine individual frames into a video.
-save.video can be called directly with an image or image list as input. 
+save.video can be called directly with an image or image list as input.
 make.video takes as argument a directory that contains a sequence of images representing individual frames to be combined into a video.
 }
 \section{Functions}{
