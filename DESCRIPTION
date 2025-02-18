@@ -25,7 +25,7 @@ BugReports: https://github.com/asgr/imager/issues
 SystemRequirements: fftw3, libtiff, X11
 LinkingTo: Rcpp
 LazyData: true
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.2
 Suggests:
     knitr,
     rmarkdown, ggplot2, dplyr, scales,
