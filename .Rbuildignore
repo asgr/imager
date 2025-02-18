@@ -10,3 +10,4 @@ LICENSE
 README.md
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^\.github$

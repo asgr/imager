@@ -1,5 +1,9 @@
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/asgr/imager/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/asgr/imager/actions/workflows/R-CMD-check.yaml)
 [![CRAN Version](https://www.r-pkg.org/badges/version/imager)](https://cran.r-project.org/package=imager)
 [![LGPL licensed](https://img.shields.io/badge/license-LGPL--3-blue.svg)](./LICENSE)
+[![Codecov test coverage](https://codecov.io/gh/asgr/imager/graph/badge.svg)](https://app.codecov.io/gh/asgr/imager)
+<!-- badges: end -->
 
 Imager is an image/video processing package for R, based on [CImg](http://cimg.eu/), a C++ library by David Tschumperlé. CImg provides an easy-to-use and consistent API for image processing, which imager largely replicates. CImg supports images in up to four dimensions, which makes it suitable for applications like video processing/hyperspectral imaging/MRI.
 
