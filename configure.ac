@@ -50,7 +50,7 @@ AC_PATH_PROG([PKGCONF],[pkg-config],[],[$PATH:/usr/local/bin:ext/bin:ext:/sw/bin
 
   AC_PATH_X
   AC_CHECK_LIB(X11, XOpenDisplay, [HAVE_LIBX11=TRUE], [HAVE_LIBX11=FALSE])
-  if test "$HAVE_LIBX11" == TRUE; then
+  if test "$HAVE_LIBX11" = TRUE; then
     AC_MSG_RESULT([X11 library found.])
     DONT_HAVE_X11=''
     #DONT_HAVE_X11='-Dcimg_display=0'
@@ -83,7 +83,7 @@ AC_MSG_NOTICE([Checking if FFTW3 library is available using pkg-config])
 ## --- FFTW 3 ----------------------------------------------------------------
 PKG_CHECK_MODULES(FFTW, fftw3, [HAVE_FFTW=TRUE], [HAVE_FFTW=FALSE])
 
-if test "$HAVE_FFTW" == TRUE; then
+if test "$HAVE_FFTW" = TRUE; then
   HAVE_FFTW='-Dcimg_use_fftw3'
   AC_MSG_RESULT([FFTW3 found!])
 else
