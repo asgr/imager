@@ -22799,7 +22799,7 @@ namespace cimg_library {
           case 'v' :
             if ((cimg_sscanf(ss,"vector%u%c",&(arg1=~0U),&sep)==2 && sep=='(' && arg1>0) ||
                 !std::strncmp(ss,"vector(",7) ||
-                (!std::strncmp(ss,"vector",6) && ss7<se1 && (s=std::strchr(ss7,'('))!=0)) { // Vector
+                (!std::strncmp(ss,"vector",6) && ss6<se1 && *ss6!='(' && (s=std::strchr(ss6,'('))!=0)) { // Vector
               _cimg_mp_op("Function 'vector()'");
               arg2 = 0; // Number of specified values
               if (arg1==~0U && *ss6!='(') {
