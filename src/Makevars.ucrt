@@ -12,3 +12,4 @@ else
   PKG_CPPFLAGS += $(shell pkg-config --cflags libtiff-4)
 endif
 
+OBJECTS = unity.o
