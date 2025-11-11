@@ -121,3 +121,5 @@ see ?colorise for more.
   * Hopeful bugfix in load.image for Windows 7 users 
 
 # 0.13 Initial release on CRAN
+  * This is the first release onto CRAN
+  
