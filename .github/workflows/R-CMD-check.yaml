@@ -31,8 +31,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - if: runner.os == 'macOS'
+      - name: Install X11 on macOS
+        if: runner.os == 'macOS'
         run: brew install --cask xquartz
+
+
+      - name: Install X11 on Ubuntu
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            xorg \
+            xvfb \
+            libx11-dev \
+            libxext-dev \
+            libxrender-dev \
+            libxtst-dev \
+            libxi-dev
 
       - uses: r-lib/actions/setup-pandoc@v2
 
