@@ -17,7 +17,7 @@ vignette: >
 knitr::opts_chunk$set(warning=FALSE, message=FALSE, cache=FALSE,
                comment=NA, verbose=TRUE, fig.width=4, fig.height=4,dev='jpeg',dev.args=list(quality=25, type="cairo"))
 ```
-**imager** contains a large array of functions for working with image data, with most of these functions coming from the [CImg library](http://www.cimg.eu/) by David Tschumperlé. This vignette is just a short tutorial, you'll find more information and examples on the website. Each function in the package is documented and comes with examples, so have a look at package documentation as well.
+**imager** contains a large array of functions for working with image data, with most of these functions coming from the [CImg library](https://www.cimg.eu/) by David Tschumperlé. This vignette is just a short tutorial, you'll find more information and examples on the website. Each function in the package is documented and comes with examples, so have a look at package documentation as well.
 
 # Plotting and loading images
 
@@ -130,7 +130,7 @@ parrots <- load.image(fpath)
 plot(parrots)
 ```
 
-**imager** supports JPEG, PNG, TIFF and BMP natively - for other formats you'll need to install [ImageMagick](http://www.imagemagick.org/script/index.php).
+**imager** supports JPEG, PNG, TIFF and BMP natively - for other formats you'll need to install [ImageMagick](https://www.imagemagick.org/script/index.php).
 
 # Example 1: Histogram equalisation
 
@@ -384,7 +384,7 @@ Suppose our task is to find the location of the center of the blobs. There are s
 
 $$ \mathrm{det}(H) = I_{xx} \times I_{yy} - I_{xy}^2 $$
 
-where $I_{xx}$ is the second derivative of the image along x, etc. See wikipedia on [blob detection](https://en.wikipedia.org/wiki/Blob_detection) for more.
+where $I_{xx}$ is the second derivative of the image along x, etc. See wikipedia on [blob detection](https://en.wikipedia.org/wiki/Blob_detection/) for more.
 
 In **imager** we can use:
 
@@ -502,7 +502,7 @@ p <- ggplot(dat,aes(x,y))+geom_raster(aes(fill=value))+facet_wrap(~ scale)
 p+scale_x_continuous(expand=c(0,0))+scale_y_continuous(expand=c(0,0),trans=scales::reverse_trans())
 ```
 
-Scale-space theory suggests that we look for blobs [across scales](https://en.wikipedia.org/wiki/Blob_detection). It's easy:
+Scale-space theory suggests that we look for blobs [across scales](https://en.wikipedia.org/wiki/Blob_detection/). It's easy:
 
 ```{r}
 scales <- seq(2,20,l=10)
