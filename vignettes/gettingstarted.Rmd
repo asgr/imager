@@ -130,7 +130,7 @@ parrots <- load.image(fpath)
 plot(parrots)
 ```
 
-**imager** supports JPEG, PNG, TIFF and BMP natively - for other formats you'll need to install [ImageMagick](https://www.imagemagick.org/script/index.php).
+**imager** supports JPEG, PNG, TIFF and BMP natively - for other formats you'll need to install [ImageMagick](https://imagemagick.org/script/index.php).
 
 # Example 1: Histogram equalisation
 
@@ -384,7 +384,7 @@ Suppose our task is to find the location of the center of the blobs. There are s
 
 $$ \mathrm{det}(H) = I_{xx} \times I_{yy} - I_{xy}^2 $$
 
-where $I_{xx}$ is the second derivative of the image along x, etc. See wikipedia on [blob detection](https://en.wikipedia.org/wiki/Blob_detection/) for more.
+where $I_{xx}$ is the second derivative of the image along x, etc. See wikipedia on [blob detection](https://en.wikipedia.org/wiki/Blob_detection) for more.
 
 In **imager** we can use:
 
