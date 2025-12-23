@@ -502,7 +502,7 @@ p <- ggplot(dat,aes(x,y))+geom_raster(aes(fill=value))+facet_wrap(~ scale)
 p+scale_x_continuous(expand=c(0,0))+scale_y_continuous(expand=c(0,0),trans=scales::reverse_trans())
 ```
 
-Scale-space theory suggests that we look for blobs [across scales](https://en.wikipedia.org/wiki/Blob_detection/). It's easy:
+Scale-space theory suggests that we look for blobs [across scales](https://en.wikipedia.org/wiki/Blob_detection). It's easy:
 
 ```{r}
 scales <- seq(2,20,l=10)
