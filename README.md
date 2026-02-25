@@ -1,5 +1,5 @@
 <!-- badges: start -->
-[![R-CMD-check](https://github.com/asgr/imager/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/asgr/imager/actions/workflows/R-CMD-check)
+[![R-CMD-check](https://github.com/asgr/imager/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/asgr/imager/actions/workflows/R-CMD-check.yaml)
 [![CRAN Version](https://www.r-pkg.org/badges/version/imager)](https://cran.r-project.org/package=imager)
 [![LGPL licensed](https://img.shields.io/badge/license-LGPL--3-blue.svg)](./LICENSE)
 [![Codecov test coverage](https://codecov.io/gh/asgr/imager/graph/badge.svg)](https://app.codecov.io/gh/asgr/imager)
