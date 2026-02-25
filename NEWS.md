@@ -1,5 +1,7 @@
-# imager development version
+# imager 1.0.0 Major release
 
+* Switch of maintained (Aaron Robotham and Rodrigo Tobar)
+* Improved support for OpenMP threading for Cimg functions, most notably median stacking of images (parmed).
 * Added support for .webp format
 
 # imager 0.41.2 Minor release
@@ -13,18 +15,14 @@
 # imager 0.41 Major release
 
 * Functions based on **plyr** are gradually being phased out in favour of ones based on **purrr** and **dplyr**. **plyr** is no longer loaded by default, which solves some conflicts, but may break existing code! If that's the case just add ```require(plyr)``` somewhere. 
-
 * new functions imeval and imchange. These create custom execution environments for functions, and simplify image pipelines: for example,
 ``` imeval(boats,~ xs*.) ```
 is equivalent to: ``` (Xc(boats)/width(boats))*boats ``` and creates a fading effect. 
 ``` imchange(boats,~ c==1,~ xs*.) ```
 is the same thing but applied only to the first colour channel (R) 
-   
 * (experimental feature) quick-and-dirty interactive interfaces are now easy to program using the interact() function. Use it to explore filter parameters, interactive segmentation. For more sophisticated needs, use e.g. shiny. 
-
 * (experimental feature) as.igraph methods for images and pixsets convert images into graph representations. Nodes are pixels, and edges are drawn between neighbouring pixels. On pixsets, this allows some interesting morphological operations, e.g. contour tracing. On images, it could be used for various graph-based image processing algorithms, like spectral graph clustering
-
-  * new function "inpaint", which fills in missing parts of an image with a weighted avg. of the neighbours. Useful for salt-and-pepper-ish noise, e.g:
+* new function "inpaint", which fills in missing parts of an image with a weighted avg. of the neighbours. Useful for salt-and-pepper-ish noise, e.g:
   ```
   im <- boats
   im[sample(nPix(im),1e4)] <- NA
@@ -32,21 +30,14 @@ is the same thing but applied only to the first colour channel (R)
               setNames(c("before","after")) %>% 
 			  plot(layout="row")
   ```
-  
 * isoblur now has optional na.rm argument, and can ignore missing values. 
-
-  
 * new function: colorise, to fill in regions with a certain colour. Also comes with a formula interface, just like imeval. Ex: highlight central region in image
     ``` colorise(boats,~ sqrt(xc^2+yc^2) < 140,"blue",alpha=.2) %>% plot ```
 see ?colorise for more. 
-	
 * new function: load.dir, to load all images in a directory  
-
 * new function: Hough transforms for circles and lines are now available, see hough_circle and hough_line
-  
 * most functions that take a colour argument now accept colour names, e.g.:
        ```imfill(10,10,val="red")``` or ```autocrop(im,col="black")```
-
 * fixed problem with recent versions of ImageMagick that weren't detected properly
 	
 # imager 0.40.2 Minor release
