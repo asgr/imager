@@ -7,28 +7,15 @@ using namespace cimg_library;
 
 // [[Rcpp::export]]
 NumericVector load_image(std::string fname) {
-  try{
-    CId image(fname.c_str());
-    return wrap(image);
-    }
-  catch(CImgException &e){
-    forward_exception_to_r(e);
-    NumericVector empty;
-    return empty; //won't happen
-  }
+  CId image(fname.c_str());
+  return wrap(image);
 }
 
 
 // [[Rcpp::export]]
 void save_image(NumericVector im, std::string fname) {
-  try{
-    CId image = as<CId >(im);
-    image.save(fname.c_str());
-    }
-  catch(CImgException &e){
-    forward_exception_to_r(e);
-  }
-  return;
+  CId image = as<CId >(im);
+  image.save(fname.c_str());
 }
 
 //' Split an image along a certain axis (producing a list)
@@ -41,48 +28,27 @@ void save_image(NumericVector im, std::string fname) {
 // [[Rcpp::export]]
 List im_split(NumericVector im,char axis,int nb=-1)
 {
-  try{
-    CId img = as<CId >(im);
-    CImgList<double> out;
-    out = img.get_split(axis,nb);
-    return wrap(out);
-    }
-  catch(CImgException &e){
-    forward_exception_to_r(e);
-    List empty;
-    return empty; //won't happen
-  }
+  CId img = as<CId >(im);
+  CImgList<double> out;
+  out = img.get_split(axis,nb);
+  return wrap(out);
 }
 
 
 // [[Rcpp::export]]
 NumericVector im_append(List imlist,char axis)
 {
-  try{
-      CImgList<double> ilist = sharedCImgList(imlist);
-      CId out(ilist.get_append(axis));
-      return wrap(out);
-  }
-  catch(CImgException &e){
-    forward_exception_to_r(e);
-    NumericVector empty;
-    return empty;
-  }
+  CImgList<double> ilist = sharedCImgList(imlist);
+  CId out(ilist.get_append(axis));
+  return wrap(out);
 }
 
 // [[Rcpp::export]]
 LogicalVector px_append(List imlist,char axis)
 {
-  try{
-      CImgList<int> ilist = sharedCImgList_bool(imlist);
-      CIb out(ilist.get_append(axis));
-      return wrap(out);
-    }
-  catch(CImgException &e){
-    forward_exception_to_r(e);
-    LogicalVector empty;
-    return empty;
-  }
+  CImgList<int> ilist = sharedCImgList_bool(imlist);
+  CIb out(ilist.get_append(axis));
+  return wrap(out);
 }
 
 //' Extract a numerical summary from image patches, using CImg's mini-language
@@ -253,15 +219,8 @@ List extract_patches3D(NumericVector im,IntegerVector cx,IntegerVector cy,Intege
 NumericVector draw_image(NumericVector im,NumericVector sprite,int x=0,int y = 0, int z = 0,float opacity = 1)
 {
   CId img = as<CId >(im);
-
-  try{
-    CId spr = as<CId >(sprite);
-    img.draw_image(x,y,z,spr,opacity);
-    }
-  catch(CImgException &e){
-    forward_exception_to_r(e);
-    
-  }
+  CId spr = as<CId >(sprite);
+  img.draw_image(x,y,z,spr,opacity);
   return wrap(img);
 }
 
@@ -276,22 +235,14 @@ List do_patchmatch(NumericVector im1,NumericVector im2,
 			  float occ_penalization,
                           NumericVector guide)
 {
-  try{
-    CId img1 = as<CId >(im1);
-    CId img2 = as<CId >(im2);
-    CId g = as<CId >(guide);
-    CId mscore(img1,"xyzc");
-    CImg<int> out = img1.matchpatch(img2,patch_width,patch_height,patch_depth,
+  CId img1 = as<CId >(im1);
+  CId img2 = as<CId >(im2);
+  CId g = as<CId >(guide);
+  CId mscore(img1,"xyzc");
+  CImg<int> out = img1.matchpatch(img2,patch_width,patch_height,patch_depth,
 				    nb_iterations,nb_randoms,occ_penalization,g,mscore);
-    CId outfl(out);
-    return List::create(_["warp"] = wrap(outfl),_["score"] = wrap(mscore));
-    }
-  catch(CImgException &e){
-    forward_exception_to_r(e);
-    List empty;
-    return empty; //won't happen
-  }
-
+  CId outfl(out);
+  return List::create(_["warp"] = wrap(outfl),_["score"] = wrap(mscore));
 }
 
 
@@ -352,17 +303,10 @@ bool has_omp()
 // [[Rcpp::export]]
 List px_split(LogicalVector im,char axis,int nb=-1)
 {
-  try{
-    CIb img = as<CIb >(im);
-    CImgList<bool> out;
-    out = img.get_split(axis,nb);
-    return wrap(out);
-    }
-  catch(CImgException &e){
-    forward_exception_to_r(e);
-    List empty;
-    return empty; //won't happen
-  }
+  CIb img = as<CIb >(im);
+  CImgList<bool> out;
+  out = img.get_split(axis,nb);
+  return wrap(out);
 }
 
 
