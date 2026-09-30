@@ -1,3 +1,16 @@
+# imager 1.0.9 Bug fix release
+
+* Fixed a data race in `warp()` (and therefore `imwarp()`) affecting forward warps
+  (`direction = "forward"`, the default in `imwarp()`) with linear or cubic
+  interpolation. These paths scatter source pixels into the output via an
+  accumulating read-modify-write blend, so running them under OpenMP made the
+  result depend on thread scheduling: repeated calls on the same input could
+  return different images once more than a handful of threads were active
+  (`OMP_NUM_THREADS` above roughly 6 on the machine where this was found).
+  The affected CImg loops are now serialised, which makes forward warps
+  deterministic and bit-identical to the single-thread result. Forward warps are
+  consequently no longer sped up by OpenMP; backward warps are unaffected.
+
 # imager 1.0.0 Major release
 
 * Switch of maintained (Aaron Robotham and Rodrigo Tobar)

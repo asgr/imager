@@ -7,6 +7,36 @@ have changed them in some newer release.
 
 Changes are listed newest first.
 
+30/09/2026
+----------
+
+* CImg::get_warp(): removed the OpenMP "parallel for" pragma from the six
+  forward-warp paths (mode 2 and mode 3, for 1D/2D/3D warping fields, with
+  linear or higher interpolation).
+
+  A forward warp scatters source pixels into the result through
+  set_linear_atX{Y,Z}(), which accumulates with an iterated read-modify-write
+  blend:
+
+      dest = (T)(w1*value + w2*dest)
+
+  When several source pixels map to the same destination, threads running the
+  loop concurrently read and write that same cell, so the accumulated value
+  depends on the order in which the scatters happen to interleave. The result
+  was therefore non-deterministic and, for maps that contract, visibly wrong:
+  on a 200x150 test image roughly 2300 of 30000 pixels differed from the
+  serial result, with an average difference of about 0.27 (compared with pixel
+  values of order 1). Atomic updates would not fix this, because the operation
+  is not a commutative reduction - the order of the blends changes the answer -
+  so only a fixed scatter order is correct.
+
+  Marked in the header with "[imager] Kept serial" comments. Note that upstream
+  CImg 4.06 still contains the same bug, so re-vendoring a newer CImg.h will
+  reintroduce it; tests/testthat/test_warp_determinism.R guards against that.
+
+  The backward-warp paths (mode 0 and mode 1) were left parallelised: they
+  gather into disjoint output cells and are unaffected.
+
 11/05/2024
 ----------
 

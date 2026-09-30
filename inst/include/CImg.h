@@ -38618,7 +38618,8 @@ namespace cimg_library {
         if (mode>=3) { // Forward-relative warp
           res.fill((T)0);
           if (interpolation>=1) // Linear interpolation
-            cimg_pragma_openmp(parallel for cimg_openmp_collapse(3) cimg_openmp_if_size(res.size(),4096))
+            // [imager] Kept serial: the forward warp scatters into 'res' via a
+            // read-modify-write blend, so the result would depend on thread scheduling.
             cimg_forYZC(res,y,z,c) {
               const t *ptrs0 = p_warp.data(0,y,z); const T *ptrs = data(0,y,z,c);
               cimg_forX(res,x) res.set_linear_atX(*(ptrs++),x + (float)*(ptrs0++),y,z,c);
@@ -38634,7 +38635,8 @@ namespace cimg_library {
         } else if (mode==2) { // Forward-absolute warp
           res.fill((T)0);
           if (interpolation>=1) // Linear interpolation
-            cimg_pragma_openmp(parallel for cimg_openmp_collapse(3) cimg_openmp_if_size(res.size(),4096))
+            // [imager] Kept serial: the forward warp scatters into 'res' via a
+            // read-modify-write blend, so the result would depend on thread scheduling.
             cimg_forYZC(res,y,z,c) {
               const t *ptrs0 = p_warp.data(0,y,z); const T *ptrs = data(0,y,z,c);
               cimg_forX(res,x) res.set_linear_atX(*(ptrs++),(float)*(ptrs0++),y,z,c);
@@ -38854,7 +38856,8 @@ namespace cimg_library {
         if (mode>=3) { // Forward-relative warp
           res.fill((T)0);
           if (interpolation>=1) // Linear interpolation
-            cimg_pragma_openmp(parallel for cimg_openmp_collapse(3) cimg_openmp_if_size(res.size(),4096))
+            // [imager] Kept serial: the forward warp scatters into 'res' via a
+            // read-modify-write blend, so the result would depend on thread scheduling.
             cimg_forYZC(res,y,z,c) {
               const t *ptrs0 = p_warp.data(0,y,z,0), *ptrs1 = p_warp.data(0,y,z,1); const T *ptrs = data(0,y,z,c);
               cimg_forX(res,x) res.set_linear_atXY(*(ptrs++),x + (float)*(ptrs0++),y + (float)*(ptrs1++),z,c);
@@ -38870,7 +38873,8 @@ namespace cimg_library {
         } else if (mode==2) { // Forward-absolute warp
           res.fill((T)0);
           if (interpolation>=1) // Linear interpolation
-            cimg_pragma_openmp(parallel for cimg_openmp_collapse(3) cimg_openmp_if_size(res.size(),4096))
+            // [imager] Kept serial: the forward warp scatters into 'res' via a
+            // read-modify-write blend, so the result would depend on thread scheduling.
             cimg_forYZC(res,y,z,c) {
               const t *ptrs0 = p_warp.data(0,y,z,0), *ptrs1 = p_warp.data(0,y,z,1); const T *ptrs = data(0,y,z,c);
               cimg_forX(res,x) res.set_linear_atXY(*(ptrs++),(float)*(ptrs0++),(float)*(ptrs1++),z,c);
@@ -39107,7 +39111,8 @@ namespace cimg_library {
         if (mode>=3) { // Forward-relative warp
           res.fill((T)0);
           if (interpolation>=1) // Linear interpolation
-            cimg_pragma_openmp(parallel for cimg_openmp_collapse(3) cimg_openmp_if_size(res.size(),4096))
+            // [imager] Kept serial: the forward warp scatters into 'res' via a
+            // read-modify-write blend, so the result would depend on thread scheduling.
             cimg_forYZC(res,y,z,c) {
               const t *ptrs0 = p_warp.data(0,y,z,0), *ptrs1 = p_warp.data(0,y,z,1), *ptrs2 = p_warp.data(0,y,z,2);
               const T *ptrs = data(0,y,z,c);
@@ -39129,7 +39134,8 @@ namespace cimg_library {
         } else if (mode==2) { // Forward-absolute warp
           res.fill((T)0);
           if (interpolation>=1) // Linear interpolation
-            cimg_pragma_openmp(parallel for cimg_openmp_collapse(3) cimg_openmp_if_size(res.size(),4096))
+            // [imager] Kept serial: the forward warp scatters into 'res' via a
+            // read-modify-write blend, so the result would depend on thread scheduling.
             cimg_forYZC(res,y,z,c) {
               const t *ptrs0 = p_warp.data(0,y,z,0), *ptrs1 = p_warp.data(0,y,z,1), *ptrs2 = p_warp.data(0,y,z,2);
               const T *ptrs = data(0,y,z,c);
