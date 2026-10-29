@@ -81,7 +81,27 @@ AC_PATH_PROG([PKGCONF],[pkg-config],[],[$PATH:/usr/local/bin:ext/bin:ext:/sw/bin
 AC_MSG_NOTICE([Checking if FFTW3 library is available using pkg-config])
 
 ## --- FFTW 3 ----------------------------------------------------------------
-PKG_CHECK_MODULES(FFTW, fftw3, [HAVE_FFTW=TRUE], [HAVE_FFTW=FALSE])
+# pkg-config is the best source of include/lib paths, but it is not always
+# installed (a plain Homebrew setup without pkg-config cannot find an fftw that
+# is otherwise perfectly linkable). Fall back to a direct probe so that FFTW is
+# only reported missing when it really is.
+HAVE_FFTW=FALSE
+PKG_CHECK_MODULES(FFTW, fftw3, [HAVE_FFTW=TRUE], [:])
+
+if test "$HAVE_FFTW" != TRUE; then
+  AC_MSG_CHECKING([for fftw3 without pkg-config])
+  ac_save_LIBS=$LIBS
+  LIBS="$LIBS -lfftw3"
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <fftw3.h>]],
+    [[fftw_complex *p = (fftw_complex*) fftw_malloc(sizeof(fftw_complex));
+      fftw_free(p); return 0;]])],
+    [HAVE_FFTW=TRUE
+     FFTW_CFLAGS=""
+     FFTW_LIBS="-lfftw3"
+     AC_MSG_RESULT([yes])],
+    [AC_MSG_RESULT([no])])
+  LIBS=$ac_save_LIBS
+fi
 
 if test "$HAVE_FFTW" = TRUE; then
   HAVE_FFTW='-Dcimg_use_fftw3'
@@ -113,7 +133,10 @@ if test "xx$PKGCONF" != "xx"; then
        AC_LINK_IFELSE([AC_LANG_FUNC_LINK_TRY(TIFFOpen)],
         [AC_MSG_RESULT([yes])],
         [AC_MSG_RESULT([neither works, abandoning pkg-config])
+        # Both must go: leaving -Dcimg_use_tiff in TIFF_CFLAGS would compile
+        # CImg's TIFF code with no library behind it and fail at link time.
         TIFF_LIBS=''
+        TIFF_CFLAGS=''
        ])
       ])
     LIBS="$saveLIBS"
@@ -144,73 +167,112 @@ else
 fi
 
 
-# Check for OpenMP (from randomForests package)
-dnl AC_OPENMP
+## ---[ OpenMP ]--------------------------------------------------------------
 
-dnl RBIN="${R_HOME}/bin/R"
+# R's own answer is authoritative: when the R build has OpenMP, it defines
+# SHLIB_OPENMP_CXXFLAGS and src/Makevars.in uses it, so there is nothing left
+# for us to decide. Several macOS R builds, however, ship a working libomp yet
+# leave that variable empty. Packages that rely on it then compile and link
+# serially with no warning at all, which is how imager ended up with threading
+# silently disabled on macOS. So when R gives us nothing, look for a usable
+# runtime ourselves.
+#
+# OPENMP_CXXFLAGS/OPENMP_LIBS are what we found (both empty when OpenMP is
+# unavailable or --disable-openmp was given); SHLIB_OPENMP_CXXFLAGS, if R set
+# it, is left to do its job through src/Makevars.in.
 
-dnl # Since some systems have broken OMP libraries we also check that the
-dnl # actual package will work.
-dnl ac_pkg_openmp=no
-dnl if test -n "${OPENMP_CFLAGS}"; then
-dnl   AC_MSG_CHECKING([whether OpenMP will work in a package])
-dnl   AC_LANG_CONFTEST([AC_LANG_PROGRAM([[#include <omp.h>]], [[ return omp_get_num_threads (); ]])])
-dnl   "$RBIN" CMD SHLIB conftest.c 1>&AS_MESSAGE_LOG_FD 2>&AS_MESSAGE_LOG_FD && "$RBIN" --vanilla -q -e "dyn.load(paste('conftest',.Platform\$dynlib.ext,sep=''))" 1>&AS_MESSAGE_LOG_FD 2>&AS_MESSAGE_LOG_FD && ac_pkg_openmp=yes
-dnl   AC_MSG_RESULT([${ac_pkg_openmp}])
-dnl fi
+AC_ARG_ENABLE([openmp],
+  [AS_HELP_STRING([--disable-openmp], [do not use OpenMP])],
+  [], [enable_openmp=yes])
 
-dnl # If ${ac_pkg_openmp} = "yes" then we have OMP, otherwise it will be "no".
-dnl if test "${ac_pkg_openmp}" = no; then
-dnl   OPENMP_CFLAGS=''
-dnl   HAVE_OPENMP=''
-dnl   AC_MSG_WARN([OpenMP does NOT appear to be supported on this system.])
-dnl else
-dnl   HAVE_OPENMP='-Dcimg_use_openmp'
-dnl fi
+OPENMP_CXXFLAGS=""
+OPENMP_LIBS=""
+ac_omp_found=no
 
-dnl AC_SUBST(OPENMP_CFLAGS)
-dnl AC_SUBST(HAVE_OPENMP)
+if test "x$enable_openmp" != xno; then
 
-# Checks for OpenMP.
-#m4_include([m4/ax_openmp.m4])
-#AX_OPENMP
+  AC_CACHE_CHECK([for R's OpenMP flags],
+    [imager_cv_openmp_from_r],
+    [imager_cv_openmp_from_r=`"${RBIN}" CMD config SHLIB_OPENMP_CXXFLAGS 2>/dev/null`
+     # R prints an ERROR line on stdout (with exit status 1) for a variable it
+     # does not know about, which is the normal case on these builds.
+     case "$imager_cv_openmp_from_r" in
+       *ERROR*) imager_cv_openmp_from_r="" ;;
+     esac])
 
-#OpenMP detection taken from ARTP2 code, as per CRAN recommendation
-#https://github.com/zhangh12/ARTP2/blob/master/configure.ac
-AC_LANG(C++)
-dnl this the meat of R's m4/openmp.m4
-  OPENMP_[]_AC_LANG_PREFIX[]FLAGS=
-  AC_ARG_ENABLE([openmp],
-    [AS_HELP_STRING([--disable-openmp], [do not use OpenMP])])
-  if test "$enable_openmp" != no; then
-    AC_CACHE_CHECK([for $[]_AC_CC[] option to support OpenMP],
-      [ac_cv_prog_[]_AC_LANG_ABBREV[]_openmp],
-      [AC_LINK_IFELSE([_AC_LANG_OPENMP],
-	 [ac_cv_prog_[]_AC_LANG_ABBREV[]_openmp='none needed'],
-	 [ac_cv_prog_[]_AC_LANG_ABBREV[]_openmp='unsupported'
-	  for ac_option in -fopenmp -xopenmp -qopenmp \
-                           -openmp -mp -omp -qsmp=omp -homp \
-			   -fopenmp=libomp \
-                           -Popenmp --openmp; do
-	    ac_save_[]_AC_LANG_PREFIX[]FLAGS=$[]_AC_LANG_PREFIX[]FLAGS
-	    _AC_LANG_PREFIX[]FLAGS="$[]_AC_LANG_PREFIX[]FLAGS $ac_option"
-	    AC_LINK_IFELSE([_AC_LANG_OPENMP],
-	      [ac_cv_prog_[]_AC_LANG_ABBREV[]_openmp=$ac_option])
-	    _AC_LANG_PREFIX[]FLAGS=$ac_save_[]_AC_LANG_PREFIX[]FLAGS
-	    if test "$ac_cv_prog_[]_AC_LANG_ABBREV[]_openmp" != unsupported; then
-	      break
-	    fi
-	  done])])
-    case $ac_cv_prog_[]_AC_LANG_ABBREV[]_openmp in #(
-      "none needed" | unsupported)
-	;; #(
-      *)
-	OPENMP_[]_AC_LANG_PREFIX[]FLAGS=$ac_cv_prog_[]_AC_LANG_ABBREV[]_openmp ;;
-    esac
+  if test -n "$imager_cv_openmp_from_r"; then
+    AC_MSG_NOTICE([R reports OpenMP flags: $imager_cv_openmp_from_r])
+    ac_omp_found=yes
+  else
+    AC_LANG(C++)
+
+    # Try one candidate flag pair by link-testing a program that needs both the
+    # header and the runtime, i.e. exactly what CImg will need. Returns true on
+    # success. $1 goes in CXXFLAGS, $2 in LIBS.
+    ac_omp_save_CXXFLAGS=$CXXFLAGS
+    ac_omp_save_LIBS=$LIBS
+    imager_try_openmp () {
+      CXXFLAGS="$ac_omp_save_CXXFLAGS $1"
+      LIBS="$2 $ac_omp_save_LIBS"
+      AC_LINK_IFELSE([AC_LANG_PROGRAM([[#ifndef _OPENMP
+#error OpenMP not enabled by the compiler flags
+#endif
+#include <omp.h>]], [[return omp_get_num_threads()]])],
+        [true], [false])
+    }
+
+    # Apple clang first: it has no -fopenmp at all, it spells the switch
+    # -Xclang -fopenmp, and that alone links nothing. The runtime must be named
+    # explicitly, and R for macOS ships one in ${R_HOME}/lib but no omp.h to go
+    # with it. Homebrew's libomp is keg-only, so its include dir is also worth
+    # passing. Naming the library by full path matters: a bare -lomp resolves
+    # against whatever is first on the linker's search path, and a stray
+    # /usr/local/lib/libomp.dylib from another toolchain would then be linked
+    # against the R-bundled header expectations of whoever built it.
+    if test "$darwin" = "yes"; then
+      for ac_p in "${R_HOME}" /usr/local/opt/libomp /opt/homebrew/opt/libomp; do
+        if test -f "$ac_p/lib/libomp.dylib"; then
+          ac_omp_inc=""
+          if test -f "$ac_p/include/omp.h"; then
+            ac_omp_inc="-I$ac_p/include"
+          fi
+          if imager_try_openmp "-Xclang -fopenmp $ac_omp_inc" "$ac_p/lib/libomp.dylib"; then
+            OPENMP_CXXFLAGS="-Xclang -fopenmp $ac_omp_inc"
+            OPENMP_LIBS="$ac_p/lib/libomp.dylib"
+            ac_omp_found=yes
+            break
+          fi
+        fi
+      done
+    fi
+
+    # GCC, Intel and friends take a single flag that both compiles and links.
+    if test "$ac_omp_found" = no; then
+      for ac_f in -fopenmp -xopenmp -qopenmp -openmp -mp -omp -qsmp=omp -homp -fopenmp=libomp; do
+        if imager_try_openmp "$ac_f" ""; then
+          OPENMP_CXXFLAGS="$ac_f"
+          OPENMP_LIBS=""
+          ac_omp_found=yes
+          break
+        fi
+      done
+    fi
+
+    CXXFLAGS=$ac_omp_save_CXXFLAGS
+    LIBS=$ac_omp_save_LIBS
+
+    if test "$ac_omp_found" = yes; then
+      AC_MSG_NOTICE([using OpenMP: CXXFLAGS="$OPENMP_CXXFLAGS" LIBS="$OPENMP_LIBS"])
+    else
+      AC_MSG_WARN([OpenMP was not found; imager will be built serially.])
+    fi
   fi
-
+elif test "x$enable_openmp" = xno; then
+  AC_MSG_NOTICE([OpenMP disabled by --disable-openmp])
+fi
 
 AC_SUBST(OPENMP_CXXFLAGS)
+AC_SUBST(OPENMP_LIBS)
 
 # Now substitute these variables in src/Makevars.in to create src/Makevars
 AC_SUBST(DONT_HAVE_X11)
