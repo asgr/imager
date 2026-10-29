@@ -209,6 +209,11 @@ if test "x$enable_openmp" != xno; then
     # Try one candidate flag pair by link-testing a program that needs both the
     # header and the runtime, i.e. exactly what CImg will need. Returns true on
     # success. $1 goes in CXXFLAGS, $2 in LIBS.
+    #
+    # The result is returned through a variable rather than as a bare `true`/
+    # `false` inside AC_LINK_IFELSE: autoconf emits cleanup commands after the
+    # if-block, so the function's exit status would be that of the last rm and
+    # the test would pass unconditionally.
     ac_omp_save_CXXFLAGS=$CXXFLAGS
     ac_omp_save_LIBS=$LIBS
     imager_try_openmp () {
@@ -218,32 +223,58 @@ if test "x$enable_openmp" != xno; then
 #error OpenMP not enabled by the compiler flags
 #endif
 #include <omp.h>]], [[return omp_get_num_threads()]])],
-        [true], [false])
+        [ac_omp_ok=yes], [ac_omp_ok=no])
+      CXXFLAGS=$ac_omp_save_CXXFLAGS
+      LIBS=$ac_omp_save_LIBS
+      test "$ac_omp_ok" = yes
     }
 
     # Apple clang first: it has no -fopenmp at all, it spells the switch
-    # -Xclang -fopenmp, and that alone links nothing. The runtime must be named
-    # explicitly, and R for macOS ships one in ${R_HOME}/lib but no omp.h to go
-    # with it. Homebrew's libomp is keg-only, so its include dir is also worth
-    # passing. Naming the library by full path matters: a bare -lomp resolves
+    # -Xclang -fopenmp, and that alone links nothing, so the runtime must be
+    # named explicitly.
+    #
+    # The header is a separate problem. R for macOS ships libomp.dylib in
+    # ${R_HOME}/lib but NOT omp.h, and Apple clang has no omp.h of its own. So
+    # the header has to come from somewhere else. We locate it ourselves and
+    # always pass its directory with -I rather than letting the compiler find
+    # it: a header that is only on the default search path can be visible to
+    # the configure probe and invisible to the later compile, because the two
+    # do not necessarily use the same SDK. That is exactly how the macOS CI
+    # build came to be configured with -Xclang -fopenmp and then fail on
+    # '#include <omp.h>: file not found'. If we cannot point at a header we
+    # can see, we decline OpenMP instead of emitting flags that may not work.
+    #
+    # Naming the library by full path matters too: a bare -lomp resolves
     # against whatever is first on the linker's search path, and a stray
-    # /usr/local/lib/libomp.dylib from another toolchain would then be linked
-    # against the R-bundled header expectations of whoever built it.
+    # /usr/local/lib/libomp.dylib from another toolchain would then be picked
+    # up instead of the one that matches the header we just chose.
     if test "$darwin" = "yes"; then
-      for ac_p in "${R_HOME}" /usr/local/opt/libomp /opt/homebrew/opt/libomp; do
-        if test -f "$ac_p/lib/libomp.dylib"; then
-          ac_omp_inc=""
-          if test -f "$ac_p/include/omp.h"; then
-            ac_omp_inc="-I$ac_p/include"
-          fi
-          if imager_try_openmp "-Xclang -fopenmp $ac_omp_inc" "$ac_p/lib/libomp.dylib"; then
-            OPENMP_CXXFLAGS="-Xclang -fopenmp $ac_omp_inc"
-            OPENMP_LIBS="$ac_p/lib/libomp.dylib"
-            ac_omp_found=yes
-            break
-          fi
+      ac_omp_incdir=""
+      for ac_d in /opt/homebrew/opt/libomp/include \
+                   /usr/local/opt/libomp/include \
+                   "${R_HOME}/include" \
+                   /usr/local/include \
+                   /opt/homebrew/include; do
+        if test -f "$ac_d/omp.h"; then
+          ac_omp_incdir=$ac_d
+          break
         fi
       done
+
+      if test -n "$ac_omp_incdir"; then
+        for ac_l in /opt/homebrew/opt/libomp/lib/libomp.dylib \
+                     /usr/local/opt/libomp/lib/libomp.dylib \
+                     "${R_HOME}/lib/libomp.dylib"; do
+          if test -f "$ac_l"; then
+            if imager_try_openmp "-Xclang -fopenmp -I$ac_omp_incdir" "$ac_l"; then
+              OPENMP_CXXFLAGS="-Xclang -fopenmp -I$ac_omp_incdir"
+              OPENMP_LIBS="$ac_l"
+              ac_omp_found=yes
+              break
+            fi
+          fi
+        done
+      fi
     fi
 
     # GCC, Intel and friends take a single flag that both compiles and links.
@@ -257,9 +288,6 @@ if test "x$enable_openmp" != xno; then
         fi
       done
     fi
-
-    CXXFLAGS=$ac_omp_save_CXXFLAGS
-    LIBS=$ac_omp_save_LIBS
 
     if test "$ac_omp_found" = yes; then
       AC_MSG_NOTICE([using OpenMP: CXXFLAGS="$OPENMP_CXXFLAGS" LIBS="$OPENMP_LIBS"])

@@ -31,9 +31,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install X11 on macOS
+      # OpenMP, FFTW and TIFF are all optional at build time: configure falls
+      # back to a serial CImg-only build when it cannot find them, so a missing
+      # formula yields a green run that silently tests far less than intended.
+      # Install them explicitly so the macOS leg exercises the full build.
+      # libomp is keg-only, which is why configure passes its include directory
+      # explicitly rather than relying on it being on the default search path.
+      - name: Install X11 and image libraries on macOS
         if: runner.os == 'macOS'
-        run: brew install --cask xquartz
+        run: |
+          brew install --cask xquartz
+          brew install pkg-config fftw libomp libtiff
 
 
       - name: Install X11 on Ubuntu
@@ -63,6 +71,24 @@ jobs:
       # may still compile and only misbehave under specific compilers or inputs.
       - name: Check vendored CImg patches
         run: Rscript tools/check_cimg_patches.R
+
+      # Every one of these is optional, and configure degrades quietly rather
+      # than failing. Assert on the macOS leg that the libraries installed
+      # above were really picked up, so a detection regression (or a changed
+      # Homebrew layout) fails here instead of going unnoticed behind a green
+      # serial build. On Linux/Windows the set of available features differs,
+      # so this is deliberately macOS-only.
+      - name: Verify configure detected OpenMP, FFTW and TIFF
+        if: runner.os == 'macOS'
+        run: |
+          ./configure
+          grep -q 'using OpenMP' config.log \
+            || { echo "::error::configure did not enable OpenMP"; exit 1; }
+          grep -q 'cimg_use_fftw3' src/Makevars \
+            || { echo "::error::configure did not find FFTW"; exit 1; }
+          grep -q 'cimg_use_tiff' src/Makevars \
+            || { echo "::error::configure did not find libtiff"; exit 1; }
+          rm -f config.log config.status src/Makevars
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
