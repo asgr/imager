@@ -1,3 +1,45 @@
+# imager 1.0.10 CImg update and forward-warp correctness fix
+
+* Re-vendored the bundled CImg header from 3.3.4 to **4.0.7**. The local patches
+  imager carries are re-applied and now guarded by
+  `tools/check_cimg_patches.R`, which CI runs; see `inst/include/NOTE_CImg` for
+  the per-patch record. Two patches became unnecessary because 4.0.7 contains
+  the fix upstream (the gcc-14 sprintf buffer and the forward-warp OpenMP
+  removal), and two upstream API removals had to be restored because imager's
+  interface depends on them: `CImg::resize_halfXY()` (used by
+  `imager::resize_halfXY()` and so by `resize_uniform()`) and the
+  dimension-string `assign()` overloads (`CImg(other,"xyzc",0)`), which 4.0.x
+  dropped while leaving the constructors that call them. Without the latter the
+  `const char*` decays to `bool` and binds the `is_shared` overload, so `add()`,
+  `wsum()` and several filters failed or silently aliased buffers.
+
+* **Forward warps now give correct pixels, not just deterministic ones.** The
+  forward (scatter) paths accumulate several source pixels into one destination
+  with `set_linear_atXY()`, which without `is_added` is an iterated blend
+  `dest = w1*value + (1-w1)*dest`. At an integer destination `w1=1`, so that
+  degenerates to `dest = value` and the last source pixel scanned wins: a
+  contracting forward warp kept one arbitrary pixel per destination instead of
+  averaging. Measured on a 40x40 noise image with every 8x8 block collapsing to
+  one pixel, the output had the sd of a single pixel (1.0) instead of the 0.125
+  of a 64-pixel mean. CImg 4.0.6 introduced accumulate-then-normalise (an `accu`
+  count divided out at the end), which is order-independent and correct; 4.0.7
+  is what imager now vendors.
+
+  This changes forward-warp output. `imwarp()` defaults to
+  `direction = "forward"`, so images produced through it — and anything that was
+  relying on the old decimation behaviour — will differ. Backward warps, and
+  forward warps whose destinations are all distinct, are unaffected.
+
+* The 1.0.9 fix for the same code path serialised the forward loops. That made
+  repeated runs agree but left the last-write-wins error in place, and it was
+  unverifiable on this repository's macOS/CRAN builds, which have no OpenMP:
+  `cimg.use.openmp()` is a no-op without OpenMP support, so
+  `test_warp_determinism.R` was comparing two identical serial runs. Those
+  thread-count tests now `skip_if_not(has_omp(), ...)` instead of reporting a
+  pass they cannot earn, and a new OpenMP-free test,
+  "forward warps average their contributions", pins the correctness property.
+  It fails on the 1.0.9 code.
+
 # imager 1.0.9 Bug fix release
 
 * Fixed a data race in `warp()` (and therefore `imwarp()`) affecting forward warps

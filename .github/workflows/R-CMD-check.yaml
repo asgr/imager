@@ -57,6 +57,13 @@ jobs:
           http-user-agent: ${{ matrix.config.http-user-agent }}
           use-public-rspm: true
 
+      # The vendored CImg.h carries local patches that a re-vendor can silently
+      # drop; see inst/include/NOTE_CImg and tools/check_cimg_patches.R. This
+      # runs before the build because the patches are source-level: a missing one
+      # may still compile and only misbehave under specific compilers or inputs.
+      - name: Check vendored CImg patches
+        run: Rscript tools/check_cimg_patches.R
+
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           extra-packages: any::rcmdcheck

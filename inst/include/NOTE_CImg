@@ -5,7 +5,98 @@ This file lists changes that have been done to the CImg header file in this
 project. Some of these might have been upstreamed or not, or upstream might
 have changed them in some newer release.
 
+IMPORTANT: this note is NOT a reliable inventory, and has been wrong twice.
+It omitted the 2025 vector() patch entirely, and it listed a 2021 patch as
+applied when the 2023 re-vendor had already lost it. The authoritative check is
+tools/check_cimg_patches.R, which greps for every patch below and fails the
+build if one is missing. Any re-vendor must be validated by diffing against the
+vanilla header from https://github.com/dtschump/CImg, not by reading this file.
+
 Changes are listed newest first.
+
+29/10/2026  Re-vendored to CImg 4.0.7
+-------------------------------------
+
+Replaced the header with upstream CImg 4.0.7 (cimg_version 407), then re-applied
+the patches that were still needed. This section is the record of what happened
+to each patch carried on 3.3.4; it is derived from a diff of vanilla 3.3.4
+against the previous vendored copy, not from the notes below.
+
+Carried forward (not upstreamed, still required):
+
+* vector() tainted-argument fix. The `!std::strncmp(ss,"vector",6)` guard tested
+  `ss7<se1` and could taint its argument; it now tests
+  `ss6<se1 && *ss6!='('`. Introduced in commit dcf8333 (2025-07-16), which had
+  never been recorded here. Upstream 4.0.7 still has the old form.
+* strellipsize null `str._data` guard in the math parser's print path
+  (commit f174543). Upstream 4.0.7 identical.
+* load_analyze null `body._data` guard (commit f174543). Upstream 4.0.7
+  identical.
+* save() must not write EOF to stdout in R mode (commit 7bd7e3e): the
+  `std::fputc(EOF,cimg::_stdout())` call is wrapped in `#ifndef cimg_use_r`.
+  Upstream 4.0.7 identical, and with `cimg_use_r` defined CImg's `_stdout()`
+  throws, so this is load-bearing.
+
+Superseded upstream, so no longer carried as patches:
+
+* The gcc-14 sprintf buffer fix (`CImg<charT> format(8)` -> 15) in
+  mp_v2s. 4.0.7 uses `(32)`, which is larger.
+* The OpenMP removal from the six forward-warp paths (30/09/2026, below).
+  4.0.7 is also serial in those branches, and additionally accumulates with
+  `is_added` and normalises by an `accu` count. That is strictly better: see
+  the correctness note below.
+
+Dropped, not required:
+
+* The openexr `#pragma GCC diagnostic` commenting-out. imager never defines
+  `cimg_use_openexr` (checked configure.ac and all three Makevars), so the
+  block is not compiled.
+
+Already lost before this re-vendor, and left lost:
+
+* The 2021 `ss.back() = 0` -> `if (ss.back() != 0)` fix (08/06/2021, below).
+  The 2023 re-vendor to 3.3.4 silently dropped it; eight bare `ss.back() = 0`
+  remain. Not restored, since the surrounding code has changed in 4.x and the
+  original fault has not been re-demonstrated. Recorded here so the loss is
+  visible rather than forgotten again.
+
+Newly added in this re-vendor (API the imager R interface depends on, which
+upstream removed between 3.3.4 and 4.0.x):
+
+* CImg::resize_halfXY() / get_resize_halfXY(). Upstream removed it between
+  3.3.4 and 4.0.0, but imager::resize_halfXY() wraps it and
+  imager::resize_uniform() exposes it to R. Body is unchanged from 3.3.4,
+  including the 9-tap kernel.
+* The dimension-string family: assign(const CImg<t>&, const char*const) and
+  assign(const CImg<t>&, const char*const, const T&). Upstream removed these
+  in 4.0.x while leaving the two public constructors that call them, which is
+  worse than it sounds: `CImg<double> out(other,"xyzc",0.0)` no longer finds the
+  string overload, so the `const char*` decays to `bool` and binds
+  `assign(img, is_shared=true)`. That throws "pixel types are different" for a
+  cross-type copy and would silently alias buffers for a same-type one.
+  Sixteen call sites in imager hit this (reductions, filtering, hough, drawing,
+  utils).
+
+Forward warps are now CORRECT, not merely deterministic. This is the important
+change and it fixes a real bug that serialising could not. A forward warp
+scatters source pixels into the output; the old code used set_linear_atXY()
+without `is_added`, i.e. an iterated blend
+
+    dest = w1*value + (1-w1)*dest
+
+At an integer destination dx=dy=0, so w1=1 and w2=0, and each scatter performs
+`dest = value`: last write wins. A contracting forward warp (the decimation case
+that matters for image stacking) therefore kept one arbitrary source pixel per
+destination instead of averaging its contributors. Measured on a 40x40 noise
+image with an 8x8-block collapse: the output carried the sd of a single pixel
+(1.0) where a mean of 64 should give 0.125, and the populated cell held exactly
+the last-scanned source value. 4.0.7 accumulates with `is_added=true` into `res`
+plus a count into `accu`, then divides at the end, which is order-independent,
+correct, and a commutative reduction.
+
+Guarded by "forward warps average their contributions" in
+tests/testthat/test_warp_determinism.R, which fails on the old behaviour and
+needs no OpenMP.
 
 30/09/2026
 ----------
@@ -30,9 +121,11 @@ Changes are listed newest first.
   is not a commutative reduction - the order of the blends changes the answer -
   so only a fixed scatter order is correct.
 
-  Marked in the header with "[imager] Kept serial" comments. Note that upstream
-  CImg 4.06 still contains the same bug, so re-vendoring a newer CImg.h will
-  reintroduce it; tests/testthat/test_warp_determinism.R guards against that.
+  SUPERSEDED 29/10/2026 by the 4.0.7 re-vendor, which fixes the root cause
+  (accumulate + normalise) rather than serialising the broken blend, and also
+  fixes the last-write-wins error described above. The old text claimed
+  "upstream CImg 4.06 still contains the same bug"; that was wrong, and 4.0.6 is
+  where upstream introduced the accumulator.
 
   The backward-warp paths (mode 0 and mode 1) were left parallelised: they
   gather into disjoint output cells and are unaffected.
@@ -58,6 +151,7 @@ Changes are listed newest first.
 ----------
 
 * Replaced the lines "ss.back() = 0;" with "if (ss.back() != 0) ss.back = 0;".
+  (LOST in the 18/09/2023 re-vendor - see the 29/10/2026 section.)
 
 10/05/2020
 ----------
