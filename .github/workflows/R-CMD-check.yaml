@@ -97,6 +97,8 @@ jobs:
 
       - uses: r-lib/actions/check-r-package@v2
         with:
+          # --as-cran forces the pragma check on, including for vendored CImg.h.
+          args: ${{ runner.os == 'Windows' && 'c("--no-manual", "--as-cran")' || 'c("--no-manual")' }}
           upload-snapshots: true
           build_args: 'c("--no-manual","--compact-vignettes=gs+qpdf")'
           error-on: ${{ runner.os == 'Windows' && '"error"' || '"warning"' }}
