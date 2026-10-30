@@ -27,9 +27,6 @@ jobs:
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
-      # CImg is vendored; its compiler-specific diagnostic pragmas trigger this
-      # check even though they are not imager's own source.
-      _R_CHECK_PRAGMAS_: false
 
     steps:
       - uses: actions/checkout@v4
@@ -100,6 +97,8 @@ jobs:
 
       - uses: r-lib/actions/check-r-package@v2
         with:
+          # --as-cran forces the pragma check on, including for vendored CImg.h.
+          args: 'c("--no-manual")'
           upload-snapshots: true
           build_args: 'c("--no-manual","--compact-vignettes=gs+qpdf")'
           error-on: ${{ runner.os == 'Windows' && '"error"' || '"warning"' }}
