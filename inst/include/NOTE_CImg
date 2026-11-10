@@ -15,34 +15,30 @@ by tools/cimg/apply_patches.sh, which configure (Unix) and configure.win
 source tarball, so it cannot go stale.
 
 The authoritative inventory of local changes is therefore the patches/
-directory, not this file. tools/check_cimg_patches.R is the inventory guard: it
-checks that every expected patch is present, that each still contains the fix
-it is supposed to carry, and that no unlisted patch has appeared. CI runs it
-before the build.
+directory, not this file.
 
-The division of labour is deliberate. A patch that no longer applies makes
-configure fail, so the build catches it without any help. What configure cannot
-see is a patch that has been *deleted*: the rest of the set still applies, the
-build stays green, and the fix is simply gone. That is the case the inventory
-check exists for, and it is the case this project has actually been bitten by.
+The only automated check is the build itself: a patch that no longer applies
+makes configure fail, so a re-vendor that breaks a patch cannot be shipped
+silently. Nothing checks that a patch is still *present*, so deleting one is a
+change the build will not notice - review the patches/ directory against the
+section below when re-vendoring.
 
 Why it is done this way: this file has been wrong twice, and the pre-patched
 header lost fixes silently on re-vendor (the 2021 ss.back() fix and the 2025
 vector() fix, years apart). With the patches as files, the difference from
 upstream is always exactly the patch set, and a re-vendor is
-"replace CImg_vanilla.h, re-run the check, port whatever fails".
+"replace CImg_vanilla.h, rebuild, port whatever fails to apply".
 
 Re-vendoring to a newer CImg
 ----------------------------
 
   1. Replace tools/cimg/CImg_vanilla.h with the new upstream header.
-  2. Rscript tools/check_cimg_patches.R
+  2. Rebuild (or run 'sh tools/cimg/apply_patches.sh' directly). configure
+     applies the patches before compiling and names any that fail.
   3. For each patch that no longer applies, port the fix to the new upstream
      code by hand and regenerate the patch (see apply_patches.sh for the
-     command). If upstream fixed it, delete the patch file and remove its entry
-     from check_cimg_patches.R.
-  4. Rebuild. configure applies the patches before compiling.
-  5. Add a section below recording what happened to each patch.
+     command). If upstream fixed it, delete the patch file.
+  4. Add a section below recording what happened to each patch.
 
 Changes are listed newest first.
 

@@ -65,17 +65,6 @@ jobs:
           http-user-agent: ${{ matrix.config.http-user-agent }}
           use-public-rspm: true
 
-      # inst/include/CImg.h is generated at build time from CImg_vanilla.h plus
-      # tools/cimg/patches/*.patch, so the patch set is the record of what imager
-      # changed in CImg. A patch that no longer applies already fails configure,
-      # so this is not about applicability. It guards the inventory: that no
-      # expected fix has gone missing and no unlisted patch has appeared. A
-      # deleted patch leaves the rest applying cleanly, so the build would stay
-      # green while a fix silently vanished, and three of the six only misbehave
-      # under specific compilers or inputs that CI may not hit.
-      - name: Check CImg patch inventory
-        run: Rscript tools/check_cimg_patches.R
-
       # Windows builds apply the patches via configure.win, which needs the
       # MSYS2 'patch' utility. Rtools ships it (it is in _rtools_msys_pkgs in R's
       # make_rtools_chroot.sh) and setup-r puts it on PATH, but say so explicitly

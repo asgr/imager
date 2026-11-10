@@ -1,9 +1,11 @@
 # imager 1.0.10 CImg update and forward-warp correctness fix
 
-* Re-vendored the bundled CImg header from 3.3.4 to **4.0.7**. The local patches
-  imager carries are re-applied and now guarded by
-  `tools/check_cimg_patches.R`, which CI runs; see `inst/include/NOTE_CImg` for
-  the per-patch record. Two patches became unnecessary because 4.0.7 contains
+* Re-vendored the bundled CImg header from 3.3.4 to **4.0.7**. imager no longer
+  ships a pre-patched header: `inst/include/CImg.h` is generated at build time
+  from the unmodified upstream `tools/cimg/CImg_vanilla.h` plus one patch file
+  per local fix in `tools/cimg/patches/`, so the difference from upstream is
+  always exactly the patch set. See `inst/include/NOTE_CImg` for the per-patch
+  record. Two patches became unnecessary because 4.0.7 contains
   the fix upstream (the gcc-14 sprintf buffer and the forward-warp OpenMP
   removal), and two upstream API removals had to be restored because imager's
   interface depends on them: `CImg::resize_halfXY()` (used by
