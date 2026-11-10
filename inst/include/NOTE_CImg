@@ -15,10 +15,16 @@ by tools/cimg/apply_patches.sh, which configure (Unix) and configure.win
 source tarball, so it cannot go stale.
 
 The authoritative inventory of local changes is therefore the patches/
-directory, not this file. tools/check_cimg_patches.R guards it: it checks that
-every expected patch is present, that each still contains the fix it is supposed
-to carry, that no unlisted patch has appeared, and that the whole set still
-applies cleanly to CImg_vanilla.h. CI runs it before the build.
+directory, not this file. tools/check_cimg_patches.R is the inventory guard: it
+checks that every expected patch is present, that each still contains the fix
+it is supposed to carry, and that no unlisted patch has appeared. CI runs it
+before the build.
+
+The division of labour is deliberate. A patch that no longer applies makes
+configure fail, so the build catches it without any help. What configure cannot
+see is a patch that has been *deleted*: the rest of the set still applies, the
+build stays green, and the fix is simply gone. That is the case the inventory
+check exists for, and it is the case this project has actually been bitten by.
 
 Why it is done this way: this file has been wrong twice, and the pre-patched
 header lost fixes silently on re-vendor (the 2021 ss.back() fix and the 2025

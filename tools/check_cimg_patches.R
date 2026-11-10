@@ -1,24 +1,28 @@
 #!/usr/bin/env Rscript
 #
-# Guard the set of local patches imager applies to the vendored CImg header.
+# Inventory guard for the local patches imager applies to the vendored CImg
+# header. This is deliberately NOT a "do the patches still apply" check.
 #
 # Why this exists
 # ---------------
-# inst/include/CImg.h is no longer committed. It is generated at build time from
-# tools/cimg/CImg_vanilla.h by applying tools/cimg/patches/*.patch, so the
-# patches are the source of truth for what imager changed in CImg.
+# inst/include/CImg.h is not committed. It is generated at build time from
+# tools/cimg/CImg_vanilla.h by applying tools/cimg/patches/*.patch, so the patch
+# files are the source of truth for what imager changed in CImg.
 #
-# That is an improvement over the previous arrangement (a pre-patched header),
-# because the diff against upstream is now always exactly the patch set. But it
-# moves the failure mode: instead of a re-vendor silently dropping a fix, a
-# re-vendor can now silently leave a patch failing to apply (caught at build
-# time by configure), or a patch can be deleted outright (not caught at all, if
-# nothing needs that fix on the developer's machine that day).
+# A patch that no longer applies is already fatal: configure stops with
+# "could not apply the CImg patches" and the build fails. Re-checking that here
+# would only duplicate configure, and two copies of the same logic drift apart.
+#
+# What configure cannot see is a patch that is *gone*. Deleting a patch file
+# leaves the remaining set applying perfectly, so the build stays green and the
+# fix silently disappears from the generated header. That is not hypothetical:
+# this project lost the 2021 ss.back() fix and the 2025 vector() fix exactly
+# this way, years apart, and neither was noticed for a long time.
 #
 # Three of these fixes only matter under specific compilers or input shapes, so
-# a normal build and a normal test run will not notice their absence. This
-# script is the checklist. It is deliberately about the patch files, not about a
-# generated header, so it runs before any build has happened.
+# a normal build and a normal test run will not notice an absence either. This
+# script is therefore the inventory: it knows which fixes are supposed to exist,
+# and fails if one is missing, emptied, or if an unlisted patch appears.
 #
 # Run: Rscript tools/check_cimg_patches.R
 # Wired into CI (.github/workflows/R-CMD-check.yaml).
@@ -98,47 +102,16 @@ if (length(extra)) {
                        "\n  Add them to tools/check_cimg_patches.R so they are guarded too."))
 }
 
-# The patches must still apply to the vanilla header they claim to patch. This
-# is what configure does, checked earlier and with a clearer message.
-if (!nzchar(Sys.which("patch"))) {
-  message("note: 'patch' not found; skipped the apply check")
-} else if (!length(failures)) {
-  # Resolve to absolute paths BEFORE changing directory, otherwise the patch
-  # paths stop resolving and every patch silently reports "not found".
-  # -F0 is deliberate: GNU patch fuzzes by default, which can place a stale
-  # hunk at the wrong offset and still report success. We want the exact
-  # context or an error.
-  pats <- sort(list.files(normalizePath(patchdir), pattern = "[.]patch$",
-                          full.names = TRUE))
-  tmp <- tempfile("cimgcheck")
-  dir.create(file.path(tmp, "inst", "include"), recursive = TRUE)
-  file.copy(normalizePath(vanilla), file.path(tmp, "inst", "include", "CImg.h"))
-  old <- setwd(tmp)
-  for (p in pats) {
-    out <- suppressWarnings(
-      system2("patch", c("-p1", "-F0", "--no-backup-if-mismatch", "-s", "-i", p),
-              stdout = TRUE, stderr = TRUE))
-    st <- attr(out, "status")
-    if (!is.null(st) && st != 0) {
-      failures <- c(failures,
-                    paste0("PATCH FAILS TO APPLY: ", basename(p),
-                           "\n  ", paste(out, collapse = "\n  ")))
-    }
-  }
-  setwd(old)
-  unlink(tmp, recursive = TRUE)
-}
-
 if (length(failures)) {
-  cat("CImg patch check FAILED\n\n")
+  cat("CImg patch inventory check FAILED\n\n")
   cat(paste0("  - ", failures, collapse = "\n"), "\n\n")
-  cat("If this is a deliberate re-vendor, port each failing patch to the new\n",
-      "upstream header, regenerate it, and update inst/include/NOTE_CImg.\n",
-      "Do not delete a patch to make the build pass without deciding what\n",
-      "happened to the fix it carries.\n",
+  cat("If this is a deliberate re-vendor, port each missing fix to the new\n",
+      "upstream header and add it back as a patch, or delete the patch file\n",
+      "and remove its entry here if upstream has fixed it. A deleted patch no\n",
+      "longer fails the build, so this list is the only thing that notices.\n",
       sep = "")
   quit(status = 1)
 }
 
-cat("CImg patch check passed (", length(must_have),
-    " patches present and applicable)\n", sep = "")
+cat("CImg patch inventory OK (", length(must_have), " patches accounted for)\n",
+    sep = "")
