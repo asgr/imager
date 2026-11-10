@@ -11838,60 +11838,6 @@ namespace cimg_library {
       return assign(img._data,img._width,img._height,img._depth,img._spectrum,is_shared);
     }
 
-    //! Construct image with dimensions borrowed from another image \inplace.
-    // [imager] Restored: upstream removed the dimension-string overloads
-    // (assign(img,dimensions), assign(img,dimensions,value) and the two
-    // matching constructors) between 3.3.4 and 4.0.x. Body is unchanged from
-    // CImg 3.3.4.
-    //
-    // Restoring them is not merely convenience: with them gone, code such as
-    //   CImg<double> out(other, "xyzc", 0.0);
-    // silently binds the `is_shared` overload above (a const char* converts to
-    // bool) and asks CImg to share a buffer of a different pixel type. That is
-    // an exception at best, and would be silent buffer aliasing across pixel
-    // types at worst.
-    /**
-       In-place version of the constructor CImg(const CImg<t>&,const char*).
-    **/
-    template<typename t>
-    CImg<T>& assign(const CImg<t>& img, const char *const dimensions) {
-      if (!dimensions || !*dimensions) return assign(img._width,img._height,img._depth,img._spectrum);
-      unsigned int siz[4] = { 0,1,1,1 }, k = 0;
-      CImg<charT> item(256);
-      for (const char *s = dimensions; *s && k<4; ++k) {
-        if (cimg_sscanf(s,"%255[^0-9%xyzvwhdcXYZVWHDC]",item._data)>0) s+=std::strlen(item);
-        if (*s) {
-          unsigned int val = 0; char sep = 0;
-          if (cimg_sscanf(s,"%u%c",&val,&sep)>0) {
-            if (sep=='%') siz[k] = val*(k==0?_width:k==1?_height:k==2?_depth:_spectrum)/100;
-            else siz[k] = val;
-            while (*s>='0' && *s<='9') ++s;
-            if (sep=='%') ++s;
-          } else switch (cimg::lowercase(*s)) {
-          case 'x' : case 'w' : siz[k] = img._width; ++s; break;
-          case 'y' : case 'h' : siz[k] = img._height; ++s; break;
-          case 'z' : case 'd' : siz[k] = img._depth; ++s; break;
-          case 'c' : case 's' : siz[k] = img._spectrum; ++s; break;
-          default :
-            throw CImgArgumentException(_cimg_instance
-                                        "assign(): Invalid character '%c' detected in specified dimension string '%s'.",
-                                        cimg_instance,
-                                        *s,dimensions);
-          }
-        }
-      }
-      return assign(siz[0],siz[1],siz[2],siz[3]);
-    }
-
-    //! Construct image with dimensions borrowed from another image and initialize pixel values \inplace.
-    /**
-       In-place version of the constructor CImg(const CImg<t>&,const char*,T).
-    **/
-    template<typename t>
-    CImg<T>& assign(const CImg<t>& img, const char *const dimensions, const T& value) {
-      return assign(img,dimensions).fill(value);
-    }
-
     //! Construct image from a display window \inplace.
     /**
        In-place version of the constructor CImg(const CImgDisplay&).
@@ -22631,7 +22577,7 @@ namespace cimg_library {
 
             if ((cimg_sscanf(ss,"vector%u%c",&(arg1=~0U),&sep)==2 && sep=='(' && arg1>0) ||
                 !std::strncmp(ss,"vector(",7) ||
-                (!std::strncmp(ss,"vector",6) && ss6<se1 && *ss6!='(' && (s=std::strchr(ss6,'('))!=0)) { // Vector
+                (!std::strncmp(ss,"vector",6) && ss7<se1 && (s=std::strchr(ss7,'('))!=0)) { // Vector
               _cimg_mp_op("Function 'vector()'");
               arg2 = 0; // Number of specified values
               if (arg1==~0U && *ss6!='(') {
@@ -29087,9 +29033,7 @@ namespace cimg_library {
             for (unsigned int k = 0; k<siz0; ++k) str[k] = (char)mp.mem[ptr++];
             str[siz0] = 0;
             cimg::strellipsize(str,1024,false);
-            if (str._data != nullptr) {
-              std::fprintf(cimg::output()," ] = '%s' (size: %u)",str._data,siz0);
-            }
+            std::fprintf(cimg::output()," ] = '%s' (size: %u)",str._data,siz0);
           } else std::fprintf(cimg::output()," ] (size: %u)",siz0);
           std::fflush(cimg::output());
           cimg::mutex(6,0);
@@ -37369,31 +37313,6 @@ namespace cimg_library {
                        const float centering_z = 0, const float centering_c = 0) const {
       return get_resize(disp.width(),disp.height(),_depth,_spectrum,interpolation_type,boundary_conditions,
                         centering_x,centering_y,centering_z,centering_c);
-    }
-
-    //! Resize image to half-size along XY axes, using an optimized filter.
-    // [imager] Restored: upstream removed resize_halfXY() between 3.3.4 and
-    // 4.0.0, but imager::resize_halfXY() (src/transformations.cpp) wraps it and
-    // imager::resize_uniform() exposes it to R. Body is unchanged from CImg
-    // 3.3.4, including the 9-tap kernel.
-    CImg<T>& resize_halfXY() {
-      return get_resize_halfXY().move_to(*this);
-    }
-
-    //! Resize image to half-size along XY axes, using an optimized filter \newinstance.
-    CImg<T> get_resize_halfXY() const {
-      if (is_empty()) return *this;
-      static const Tfloat kernel[9] = { 0.07842776544f, 0.1231940459f, 0.07842776544f,
-                                        0.1231940459f,  0.1935127547f, 0.1231940459f,
-                                        0.07842776544f, 0.1231940459f, 0.07842776544f };
-      CImg<T> I(9), res(_width/2,_height/2,_depth,_spectrum);
-      T *ptrd = res._data;
-      cimg_forZC(*this,z,c) cimg_for3x3(*this,x,y,z,c,I,T)
-        if (x%2 && y%2) *(ptrd++) = (T)
-                          (I[0]*kernel[0] + I[1]*kernel[1] + I[2]*kernel[2] +
-                           I[3]*kernel[3] + I[4]*kernel[4] + I[5]*kernel[5] +
-                           I[6]*kernel[6] + I[7]*kernel[7] + I[8]*kernel[8]);
-      return res;
     }
 
     //! Resize image to double-size, using the Scale2X algorithm.
@@ -58899,9 +58818,7 @@ namespace cimg_library {
       load_analyze(command);
       std::remove(command);
       cimg::split_filename(command,body);
-      if (body._data != nullptr) {
-        cimg_snprintf(command,command._width,"%s.img",body._data);
-      }
+      cimg_snprintf(command,command._width,"%s.img",body._data);
       std::remove(command);
       return *this;
     }
@@ -66997,12 +66914,7 @@ namespace cimg_library {
       else if (!cimg::strcasecmp(ext,"gz")) return save_gzip_external(fn);
       else {
         if (_width==1) _data[0].save(fn,-1);
-        else cimglist_for(*this,l) {
-          _data[l].save(fn,is_stdout?-1:l);
-#ifndef cimg_use_r
-           if (is_stdout) std::fputc(EOF,cimg::_stdout());
-#endif
-        }
+        else cimglist_for(*this,l) { _data[l].save(fn,is_stdout?-1:l); if (is_stdout) std::fputc(EOF,cimg::_stdout()); }
       }
       return *this;
     }

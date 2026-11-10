@@ -1,0 +1,13 @@
+--- a/inst/include/CImg.h
++++ b/inst/include/CImg.h
+@@ -29087,7 +29087,9 @@
+             for (unsigned int k = 0; k<siz0; ++k) str[k] = (char)mp.mem[ptr++];
+             str[siz0] = 0;
+             cimg::strellipsize(str,1024,false);
+-            std::fprintf(cimg::output()," ] = '%s' (size: %u)",str._data,siz0);
++            if (str._data != nullptr) {
++              std::fprintf(cimg::output()," ] = '%s' (size: %u)",str._data,siz0);
++            }
+           } else std::fprintf(cimg::output()," ] (size: %u)",siz0);
+           std::fflush(cimg::output());
+           cimg::mutex(6,0);

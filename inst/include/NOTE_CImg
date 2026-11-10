@@ -1,18 +1,61 @@
 CImg changes
 ============
 
-This file lists changes that have been done to the CImg header file in this
-project. Some of these might have been upstreamed or not, or upstream might
-have changed them in some newer release.
+How the vendored CImg is now maintained
+---------------------------------------
 
-IMPORTANT: this note is NOT a reliable inventory, and has been wrong twice.
-It omitted the 2025 vector() patch entirely, and it listed a 2021 patch as
-applied when the 2023 re-vendor had already lost it. The authoritative check is
-tools/check_cimg_patches.R, which greps for every patch below and fails the
-build if one is missing. Any re-vendor must be validated by diffing against the
-vanilla header from https://github.com/dtschump/CImg, not by reading this file.
+inst/include/CImg.h is GENERATED, not stored in the repository. It is built at
+build time from:
+
+  tools/cimg/CImg_vanilla.h        upstream CImg, unmodified
+  tools/cimg/patches/*.patch       one file per local fix
+
+by tools/cimg/apply_patches.sh, which configure (Unix) and configure.win
+(Windows) both call. The generated header is gitignored and excluded from the
+source tarball, so it cannot go stale.
+
+The authoritative inventory of local changes is therefore the patches/
+directory, not this file. tools/check_cimg_patches.R guards it: it checks that
+every expected patch is present, that each still contains the fix it is supposed
+to carry, that no unlisted patch has appeared, and that the whole set still
+applies cleanly to CImg_vanilla.h. CI runs it before the build.
+
+Why it is done this way: this file has been wrong twice, and the pre-patched
+header lost fixes silently on re-vendor (the 2021 ss.back() fix and the 2025
+vector() fix, years apart). With the patches as files, the difference from
+upstream is always exactly the patch set, and a re-vendor is
+"replace CImg_vanilla.h, re-run the check, port whatever fails".
+
+Re-vendoring to a newer CImg
+----------------------------
+
+  1. Replace tools/cimg/CImg_vanilla.h with the new upstream header.
+  2. Rscript tools/check_cimg_patches.R
+  3. For each patch that no longer applies, port the fix to the new upstream
+     code by hand and regenerate the patch (see apply_patches.sh for the
+     command). If upstream fixed it, delete the patch file and remove its entry
+     from check_cimg_patches.R.
+  4. Rebuild. configure applies the patches before compiling.
+  5. Add a section below recording what happened to each patch.
 
 Changes are listed newest first.
+
+10/11/2026  Patches split out of the vendored header
+-----------------------------------------------------
+
+The single pre-patched CImg.h was replaced by CImg_vanilla.h plus six patch
+files, applied at build time. The generated header is byte-identical to the
+previous committed one, so no behaviour changed; this is purely how the changes
+are stored. The six patches, in application order:
+
+  01-restore-dimension-string-assign.patch
+  02-fix-vector-tainted-argument.patch
+  03-guard-strellipsize-null-data.patch
+  04-restore-resize-halfXY.patch
+  05-guard-load-analyze-null-data.patch
+  06-no-eof-to-stdout-in-r-mode.patch
+
+The descriptions in the 29/10/2026 section below still apply to them.
 
 29/10/2026  Re-vendored to CImg 4.0.7
 -------------------------------------

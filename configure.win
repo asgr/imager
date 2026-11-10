@@ -1,0 +1,23 @@
+#!/bin/sh
+# Windows counterpart to configure.
+#
+# The package keeps only the vanilla upstream CImg header (tools/cimg/
+# CImg_vanilla.h) plus the local fixes as patch files (tools/cimg/patches/),
+# and generates inst/include/CImg.h from them at build time. That generation
+# has to happen on Windows too, but there is no features to probe for there, so
+# this is not a full autoconf configure: it exists purely to run the patch
+# step, which configure does on Unix.
+#
+# Rtools ships the MSYS2 'patch' utility (it is listed in
+# _rtools_msys_pkgs in R's make_rtools_chroot.sh), so no extra tooling is
+# needed on a standard Windows build machine.
+
+set -e
+
+if ! sh tools/cimg/apply_patches.sh inst/include/CImg.h; then
+  echo "configure.win: could not apply the CImg patches" >&2
+  echo "Run 'sh tools/cimg/apply_patches.sh' by hand to see which patch failed." >&2
+  exit 1
+fi
+
+exit 0

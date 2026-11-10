@@ -13,6 +13,30 @@ if test -z "${R_HOME}"; then
   echo "could not determine R_HOME"
   exit 1
 fi
+
+## ---[ CImg header ]---------------------------------------------------------
+#
+# inst/include/CImg.h is generated, not committed: it is the vanilla upstream
+# header in tools/cimg/CImg_vanilla.h with the fixes in tools/cimg/patches/
+# applied on top. Keeping the fixes as patches means the difference from
+# upstream is always exactly the patch set, so a re-vendor cannot silently drop
+# one (which has happened twice: the 2021 ss.back() fix and the 2025 vector()
+# fix). See tools/cimg/apply_patches.sh for the full rationale.
+#
+# Doing this here rather than in a Makefile means it happens exactly once per
+# build, before anything compiles. configure.win calls the same script on
+# Windows; Rtools provides the 'patch' utility.
+
+AC_MSG_CHECKING([whether the vendored CImg header can be generated])
+if sh "${srcdir}/tools/cimg/apply_patches.sh" "${srcdir}/inst/include/CImg.h" 1>&AS_MESSAGE_LOG_FD 2>&1; then
+  AC_MSG_RESULT([yes])
+else
+  AC_MSG_RESULT([no])
+  AC_MSG_ERROR([could not apply the CImg patches; see config.log. This usually means
+tools/cimg/CImg_vanilla.h was updated without re-basing tools/cimg/patches/.
+Run 'sh tools/cimg/apply_patches.sh' by hand to see which patch failed.])
+fi
+
 CC=`"${R_HOME}/bin/R" CMD config CC`
 CFLAGS=`"${R_HOME}/bin/R" CMD config CFLAGS`
 CPPFLAGS=`"${R_HOME}/bin/R" CMD config CPPFLAGS`
