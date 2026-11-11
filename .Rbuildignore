@@ -11,3 +11,5 @@ README.md
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^\.github$
+# Generated at build time (see tools/cimg/); never ship a stale copy
+^inst/include/CImg\.h$

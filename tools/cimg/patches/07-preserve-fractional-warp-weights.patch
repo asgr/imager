@@ -1,0 +1,20 @@
+--- a/inst/include/CImg.h
++++ b/inst/include/CImg.h
+@@ -38537,7 +38537,7 @@
+                                     p_warp._width,p_warp._height,p_warp._depth,p_warp._spectrum,p_warp._data);
+ 
+       CImg<T> res(p_warp._width,p_warp._height,p_warp._depth,_spectrum);
+-      CImg<uintT> accu;
++      CImg<floatT> accu;
+ 
+       if (p_warp._spectrum==1) { // 1D warping
+         if (mode>=3) { // Forward-relative warp
+@@ -39554,7 +39554,7 @@
+         cimg_forXYZ(res,x,y,z) {
+           T *ptrd = res.data(x,y,z);
+           const ulongT whd = (ulongT)res._width*res._height*res._depth;
+-          const unsigned int sum = accu(x,y,z);
++          const floatT sum = accu(x,y,z);
+           if (sum) cimg_forC(res,c) { *ptrd/=sum; ptrd+=whd; }
+         }
+       }

@@ -1,0 +1,13 @@
+--- a/inst/include/CImg.h
++++ b/inst/include/CImg.h
+@@ -58899,7 +58899,9 @@
+       load_analyze(command);
+       std::remove(command);
+       cimg::split_filename(command,body);
+-      cimg_snprintf(command,command._width,"%s.img",body._data);
++      if (body._data != nullptr) {
++        cimg_snprintf(command,command._width,"%s.img",body._data);
++      }
+       std::remove(command);
+       return *this;
+     }

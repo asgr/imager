@@ -1,7 +1,7 @@
 Package: imager
 Type: Package
 Title: Image Processing Library Based on 'CImg'
-Version: 1.0.9
+Version: 1.1.0
 Authors@R: c(person("Simon","Barthelme",email="simon.barthelme@gipsa-lab.fr",role=c("aut")),
  person("David","Tschumperle",role=c("ctb")),
  person("Jan","Wijffels",role=c("ctb")),
@@ -25,7 +25,7 @@ BugReports: https://github.com/asgr/imager/issues
 SystemRequirements: fftw3, libtiff, X11
 LinkingTo: Rcpp
 LazyData: true
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
 Suggests:
     Cairo,
     dplyr,

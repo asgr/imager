@@ -1,5 +1,9 @@
 PKG_CPPFLAGS = @CPPFLAGS@ @DONT_HAVE_X11@ @HAVE_FFTW@ @FFTW_CFLAGS@ @TIFF_CFLAGS@ -I../inst/include -DCIMG_COMPILING -Dcimg_use_rng -Dcimg_use_r -Dcimg_use_fftw3_singlethread -Dcimg_verbosity=1 -Dcimg_date='""' -Dcimg_time='""'
-PKG_CXXFLAGS = $(SHLIB_OPENMP_CXXFLAGS)
-PKG_LIBS =  $(SHLIB_OPENMP_CXXFLAGS) @LIBS@  @HAVE_FFTW@ @FFTW_LIBS@ @TIFF_LIBS@ $(RCPP_LDFLAGS)
+# SHLIB_OPENMP_CXXFLAGS is R's own answer and is empty when R was built without
+# OpenMP, which is why configure.ac independently probes for a usable runtime
+# and substitutes @OPENMP_CXXFLAGS@/@OPENMP_LIBS@. Both are empty when neither
+# applies, so a serial build still works.
+PKG_CXXFLAGS = $(SHLIB_OPENMP_CXXFLAGS) @OPENMP_CXXFLAGS@
+PKG_LIBS =  $(SHLIB_OPENMP_CXXFLAGS) @OPENMP_CXXFLAGS@ @OPENMP_LIBS@ @LIBS@  @HAVE_FFTW@ @FFTW_LIBS@ @TIFF_LIBS@ $(RCPP_LDFLAGS)
 
 OBJECTS = unity.o

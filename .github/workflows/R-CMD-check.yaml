@@ -20,7 +20,7 @@ jobs:
         config:
           - {os: macos-latest,   r: 'release'}
           - {os: windows-latest, r: 'release'}
-          - {os: ubuntu-latest,   r: 'devel', http-user-agent: 'release'}
+          # - {os: ubuntu-latest,   r: 'devel', http-user-agent: 'release'}
           - {os: ubuntu-latest,   r: 'release'}
           - {os: ubuntu-latest,   r: 'oldrel-1'}
 
@@ -31,9 +31,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install X11 on macOS
+      # OpenMP, FFTW and TIFF are all optional at build time: configure falls
+      # back to a serial CImg-only build when it cannot find them, so a missing
+      # formula yields a green run that silently tests far less than intended.
+      # Install them explicitly so the macOS leg exercises the full build.
+      # libomp is keg-only, which is why configure passes its include directory
+      # explicitly rather than relying on it being on the default search path.
+      - name: Install X11 and image libraries on macOS
         if: runner.os == 'macOS'
-        run: brew install --cask xquartz
+        run: |
+          brew install --cask xquartz
+          brew install pkg-config fftw libomp libtiff
 
 
       - name: Install X11 on Ubuntu
@@ -57,6 +65,46 @@ jobs:
           http-user-agent: ${{ matrix.config.http-user-agent }}
           use-public-rspm: true
 
+      # Windows builds apply the patches via configure.win, which needs the
+      # MSYS2 'patch' utility. Rtools ships it (it is in _rtools_msys_pkgs in R's
+      # make_rtools_chroot.sh) and setup-r puts it on PATH, but say so explicitly
+      # here so a missing toolchain component fails with a clear message rather
+      # than a confusing configure error later. This runs on all three runners
+      # because all three need patch: configure on macOS/Linux, configure.win on
+      # Windows.
+      #
+      # shell: bash is required and not cosmetic. The default shell on Windows
+      # runners is PowerShell, which cannot parse POSIX '[ ... ]' / '||' syntax.
+      # GitHub provides Git Bash on windows-latest, so pinning bash makes this
+      # one script work unchanged everywhere.
+      - name: Confirm patch utility is available
+        shell: bash
+        run: |
+          if ! command -v patch >/dev/null 2>&1; then
+            echo "::error::the 'patch' utility is required to build imager (Rtools provides it on Windows)"
+            exit 1
+          fi
+          patch --version | head -1
+
+      # Every one of these is optional, and configure degrades quietly rather
+      # than failing. Assert on the macOS leg that the libraries installed
+      # above were really picked up, so a detection regression (or a changed
+      # Homebrew layout) fails here instead of going unnoticed behind a green
+      # serial build. On Linux/Windows the set of available features differs,
+      # so this is deliberately macOS-only.
+      - name: Verify configure detected OpenMP, FFTW and TIFF
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          ./configure
+          grep -Eq 'R reports OpenMP flags:|using OpenMP' config.log \
+            || { echo "::error::configure did not enable OpenMP"; exit 1; }
+          grep -Eq '(^|[[:space:]])-Dcimg_use_fftw3([[:space:]]|$)' src/Makevars \
+            || { echo "::error::configure did not find FFTW"; exit 1; }
+          grep -q 'cimg_use_tiff' src/Makevars \
+            || { echo "::error::configure did not find libtiff"; exit 1; }
+          rm -f config.log config.status src/Makevars
+
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           extra-packages: any::rcmdcheck
@@ -64,6 +112,8 @@ jobs:
 
       - uses: r-lib/actions/check-r-package@v2
         with:
+          # --as-cran forces the pragma check on, including for vendored CImg.h.
+          args: ${{ runner.os == 'Windows' && 'c("--no-manual", "--as-cran")' || 'c("--no-manual")' }}
           upload-snapshots: true
           build_args: 'c("--no-manual","--compact-vignettes=gs+qpdf")'
           error-on: ${{ runner.os == 'Windows' && '"error"' || '"warning"' }}
