@@ -11,8 +11,13 @@
 
 #include "CImg.h"
 
-#include <R.h>
+// Rcpp.h must come before R.h. Rcpp warns (and it is a real hazard: R's
+// macros can break Rcpp's templates) when R.h is seen first, because R.h
+// defines USING_R and pulls in Rinternals-style macros that Rcpp then has to
+// work around. Including Rcpp first and letting it pull in what it needs from
+// R is the order Rcpp's own documentation recommends.
 #include <Rcpp.h>
+#include <R.h>
 
 #ifdef _OPENMP
 #define cimg_use_openmp 1
