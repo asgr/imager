@@ -34,14 +34,30 @@ test_that("forward warps average their contributions", {
   out <- warp(im, wf, mode = 2, interpolation = 1)
   expect_equal(as.numeric(out[1, 1, 1, 1]), 2.5)
 
+  wf_frac <- list(as.cimg(array(rep(1.25, 4), c(2, 2, 1, 1))),
+                  as.cimg(array(rep(1.25, 4), c(2, 2, 1, 1)))) %>% imappend("c")
+  out_frac <- warp(ones, wf_frac, mode = 2, interpolation = 1)
+  expect_equal(as.numeric(as.array(out_frac)[,,1,1]), rep(1, 4))
+
   # Nothing is created or destroyed: the single populated cell holds the mean,
   # not the sum and not one of the inputs.
   expect_equal(sum(as.array(out)), 2.5)
   expect_equal(sum(as.array(out) != 0), 1)
 
+  # The 3D forward-absolute path must normalize both interpolation modes too.
+  im3 <- as.cimg(array(1:8, c(2, 2, 2, 1)))
+  wf3 <- list(as.cimg(array(1, c(2, 2, 2, 1))),
+              as.cimg(array(1, c(2, 2, 2, 1))),
+              as.cimg(array(1, c(2, 2, 2, 1)))) %>% imappend("c")
+  for (interpolation in 1:2) {
+    out3 <- warp(im3, wf3, mode = 2, interpolation = interpolation)
+    expect_equal(as.numeric(out3[1, 1, 1, 1]), 4.5)
+    expect_equal(sum(as.array(out3)), 4.5)
+  }
+
   # The same contract through the relative-mode scatter.
-  rel <- list(as.cimg(array(1 - rep(1:2, each = 2), c(2, 2, 1, 1))),
-              as.cimg(array(1 - rep(1:2, times = 2), c(2, 2, 1, 1)))) %>% imappend("c")
+  rel <- list(as.cimg(array(1 - rep(1:2, times = 2), c(2, 2, 1, 1))),
+              as.cimg(array(1 - rep(1:2, each = 2), c(2, 2, 1, 1)))) %>% imappend("c")
   expect_equal(as.numeric(warp(im, rel, mode = 3, interpolation = 1)[1, 1, 1, 1]), 2.5)
 
   # A larger collapse exercises the accu normalisation over many contributors:

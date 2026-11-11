@@ -97,9 +97,9 @@ jobs:
         shell: bash
         run: |
           ./configure
-          grep -q 'using OpenMP' config.log \
+          grep -Eq 'R reports OpenMP flags:|using OpenMP' config.log \
             || { echo "::error::configure did not enable OpenMP"; exit 1; }
-          grep -q 'cimg_use_fftw3' src/Makevars \
+          grep -Eq '(^|[[:space:]])-Dcimg_use_fftw3([[:space:]]|$)' src/Makevars \
             || { echo "::error::configure did not find FFTW"; exit 1; }
           grep -q 'cimg_use_tiff' src/Makevars \
             || { echo "::error::configure did not find libtiff"; exit 1; }

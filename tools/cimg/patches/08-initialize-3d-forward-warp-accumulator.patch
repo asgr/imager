@@ -1,0 +1,10 @@
+--- a/inst/include/CImg.h
++++ b/inst/include/CImg.h
+@@ -39155,6 +39155,7 @@
+               }
+             }
+         } else if (mode==2) { // Forward-absolute warp
++          accu.assign(res._width,res._height,res._depth,1,0);
+           res.fill((T)0);
+           if (interpolation>=1) // Linear interpolation
+             cimg_forYZC(res,y,z,c) {
