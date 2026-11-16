@@ -89,9 +89,11 @@ plot(im,colourscale=hsv,rescale=FALSE,
 #In grayscale images, the colourscale function should take in a single value
 #and return an RGB code
 boats.gs <- grayscale(boats)
-#We use an interpolation function from package scales
+#We use an interpolation function from package scales (if installed)
+if (requireNamespace("scales",quietly=TRUE)) {
 cscale <- scales::gradient_n_pal(c("red","purple","lightblue"),c(0,.5,1))
 plot(boats.gs,rescale=FALSE,colourscale=cscale)
+}
 #Plot a one-dimensional image
 imsub(boats,x==1) \%>\% plot(main="Image values along first column")
 #Plotting with and without anti-aliasing:

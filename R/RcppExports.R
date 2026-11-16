@@ -897,9 +897,11 @@ px_append <- function(imlist, axis) {
 #' #Example: median filtering using patch_summary_cimg
 #' #Center a patch at each pixel
 #' im <- grayscale(boats)
-#' patches <- pixel.grid(im)  %>% dplyr::mutate(w=3,h=3)
+#' patches <- pixel.grid(im)
+#' patches$w <- 3; patches$h <- 3
 #' #Extract patch summary
-#' out <- dplyr::mutate(patches,med=patch_summary_cimg(im,"ic",x,y,w,h))
+#' patches$med <- patch_summary_cimg(im,"ic",patches$x,patches$y,patches$w,patches$h)
+#' out <- patches
 #' as.cimg(out,v.name="med") %>% plot
 #' @export
 patch_summary_cimg <- function(im, expr, cx, cy, wx, wy) {

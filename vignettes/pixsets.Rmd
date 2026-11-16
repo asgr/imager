@@ -112,7 +112,7 @@ imager::where(px) %>% head
 where returns a data.frame. That format is especially convenient if you want to compute some statistics on the coordinates, e.g., the center of mass of a region defined by a pixset:
 
 ```{r}
-imager::where(px) %>% dplyr::summarise(mx=mean(x),my=mean(y))
+with(imager::where(px),data.frame(mx=mean(x),my=mean(y)))
 ```
 
 
@@ -264,10 +264,9 @@ threshold(im) %>% plot
 It's possible to correct the illumination using a linear model: 
 
 ```{r eval=has_png}
-library(dplyr)
 d <- as.data.frame(im)
-##Subsamble, fit a linear model
-m <- sample_n(d,1e4) %>% lm(value ~ x*y,data=.) 
+##Subsample, fit a linear model
+m <- lm(value ~ x*y,data=d[sample(nrow(d),1e4),]) 
 ##Correct by removing the trend
 im.c <- im-predict(m,d)
 out <- threshold(im.c)

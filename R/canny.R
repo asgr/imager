@@ -1,8 +1,12 @@
 fillInit <- function(strong)
     {
         lab <- label(strong,TRUE)*strong
-        as.data.frame(lab) %>% dplyr::filter(value > 0) %>% dplyr::group_by(value) %>% dplyr::summarize(x=x[1],y=y[1])
-
+        #Base R instead of dplyr: cannyEdges must work without Suggests (HPC)
+        df <- as.data.frame(lab)
+        df <- df[df$value > 0,]
+        parts <- lapply(split(df,df$value),function(d) d[1,c("x","y"),drop=FALSE])
+        out <- do.call(rbind,parts)
+        if (is.null(out)) data.frame(x=integer(0),y=integer(0)) else out
     }
 
 #Starts a fill at each successive location, and accumulates the results
@@ -11,10 +15,9 @@ rescueFill <- function(strong,weak)
         v <- strong
         v[weak==1] <- .9
         loc <- fillInit(strong)
-        #Transform the data.frame into a list of locations
-        loc <- dplyr::select(loc,-value) %>% { purrr::transpose(.) }
-        #Fold
-        out <- purrr::reduce(loc,function(v,l) bucketfill(v,l$x,l$y,color=1,sigma=.1,high_connexity=TRUE),
+        #Fold a bucket fill over each location (empty loc returns v unchanged)
+        out <- purrr::reduce(purrr::transpose(loc),
+                      function(v,l) bucketfill(v,l$x,l$y,color=1,sigma=.1,high_connexity=TRUE),
                       .init=v)
         as.cimg(out==1)
     }

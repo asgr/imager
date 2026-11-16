@@ -599,7 +599,8 @@ patchmatch <- function(im1,im2,sx=1,sy=1,sz=1,nIter=10,nRad=10,occPenal,init)
 #' #Mean of image patches centered at (10,10) and (20,4) of size 2x2
 #' patchstat(im,'mean',c(10,20),c(10,4),5,5)
 #' #Sample 10 random positions
-#' ptch <- pixel.grid(im) %>% dplyr::sample_n(10)
+#' ptch <- pixel.grid(im)
+#' ptch <- ptch[sample(nrow(ptch),10),]
 #' #Compute median patch value
 #' with(ptch,patchstat(im,'median',x,y,3,3))
 #' @export

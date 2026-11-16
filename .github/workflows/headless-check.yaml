@@ -73,9 +73,21 @@ jobs:
           extra-packages: any::rcmdcheck
           needs: check
 
+      # Two phases, because _R_CHECK_DEPENDS_ONLY_ also hides knitr/rmarkdown
+      # (they are Suggests), which makes vignette re-building impossible in a
+      # dependency-only run:
+      #   1. Build the tarball normally, WITH vignettes. This exercises the
+      #      guarded vignette chunks with all Suggests present.
+      #   2. Check that tarball with --no-build-vignettes and DEPENDS_ONLY, so
+      #      examples and tests run against a bare library. The pre-built
+      #      vignettes in inst/doc keep the vignette consistency checks happy.
+      - name: Build tarball with vignettes
+        shell: bash
+        run: R CMD build --no-manual .
+
       - uses: r-lib/actions/check-r-package@v2
         with:
-          args: 'c("--no-manual")'
+          args: 'c("--no-manual","--no-build-vignettes")'
           upload-snapshots: true
           build_args: 'c("--no-manual")'
           error-on: '"warning"'

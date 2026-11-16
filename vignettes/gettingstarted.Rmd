@@ -34,6 +34,9 @@ cimg.limit.openmp()
 #vignette that use the bundled PNG/JPEG pictures are skipped without them.
 has_png <- has.image.reader("png")
 has_jpeg <- has.image.reader("jpeg")
+#The tidyverse packages are optional too; the sections that use them are
+#skipped when they are not installed.
+has_tidy <- all(vapply(c("dplyr","ggplot2","scales"),requireNamespace,logical(1),quietly=TRUE))
 ```
 
 Note the y axis running downwards: the origin is at the top-left corner, which is the traditional coordinate system for images. **imager** uses this coordinate system consistently. Image data has class "cimg":
@@ -110,9 +113,9 @@ cscale <- function(v) rgb(0,0,v)
 grayscale(boats) %>% plot(colourscale=cscale,rescale=FALSE)
 ```
 
-The scales package has a few handy functions for creating colour scales, for example by interpolating a gradient:
+The scales package has a few handy functions for creating colour scales, for example by interpolating a gradient (skipped if the suggested tidyverse packages are not installed):
 
-```{r}
+```{r eval=has_tidy}
 cscale <- scales::gradient_n_pal(c("red","purple","lightblue"),c(0,.5,1))
 #cscale is now a function returning colour codes
 cscale(0)
@@ -161,7 +164,7 @@ R(boats) %>% hist(main="Red channel values in boats picture")
 
 Another approach is to turn the image into a `data.frame`, and use `ggplot` to view all channels at once:
 
-```{r fig.width=5, fig.height=3}
+```{r eval=has_tidy, fig.width=5, fig.height=3}
 library(ggplot2)
 library(dplyr)
 bdf <- as.data.frame(boats)
@@ -305,35 +308,35 @@ where $x_ij$ is the value of pixel $i$ in the $j-th$ element of the list.
 
 # imager and ggplot2
 
-To plot your image data using **ggplot2**, use `as.data.frame` and `geom_raster`:
+To plot your image data using **ggplot2**, use `as.data.frame` and `geom_raster` (this section is skipped if the suggested tidyverse packages are not installed):
 
-```{r}
+```{r eval=has_tidy}
 df <- grayscale(boats) %>% as.data.frame
 p <- ggplot(df,aes(x,y))+geom_raster(aes(fill=value))
 p
 ```
 
 We're not quite there, mainly because our y axis is reversed. Here's a fix:
-```{r}
+```{r eval=has_tidy}
 p + scale_y_continuous(trans=scales::reverse_trans())
 ```
 
 The grey margin around the plot should be eliminated as well:
 
-```{r}
+```{r eval=has_tidy}
 p <- p+scale_x_continuous(expand=c(0,0))+scale_y_continuous(expand=c(0,0),trans=scales::reverse_trans())
 p
 ```
 
 Finally, `ggplot` has a blue colour scale by default, but we might want to keep our original grays:
 
-```{r}
+```{r eval=has_tidy}
 p+scale_fill_gradient(low="black",high="white")
 ```
 
 Colour images are a bit trickier. We could plot each channel separately:
 
-```{r fig.width=7}
+```{r eval=has_tidy, fig.width=7}
 df <- as.data.frame(boats)
 p <- ggplot(df,aes(x,y))+geom_raster(aes(fill=value))+facet_wrap(~ cc)
 p+scale_y_reverse()
@@ -347,14 +350,14 @@ as.data.frame(boats,wide="c") %>% head
 
 The three colour channels are now stacked along columns, which lets us do the following:
 
-```{r}
+```{r eval=has_tidy}
 df <- as.data.frame(boats,wide="c") %>% mutate(rgb.val=rgb(c.1,c.2,c.3))
 head(df,3)
 ```
 
 We can now plot our image using `ggplot`'s identity scale:
 
-```{r}
+```{r eval=has_tidy}
 p <- ggplot(df,aes(x,y))+geom_raster(aes(fill=rgb.val))+scale_fill_identity()
 p+scale_y_reverse()
 ```
@@ -434,10 +437,10 @@ head(df,3)
 unique(df$value) #10 regions
 ```
 
-And now all we need to do is to split the data.frame into regions, and compute the mean coordinate values in each. Here's a solution using **dplyr**:
+And now all we need to do is to split the data.frame into regions, and compute the mean coordinate values in each, using base R's split/aggregate idiom:
 
 ```{r}
-centers <- dplyr::group_by(df,value) %>% dplyr::summarise(mx=mean(x),my=mean(y))
+centers <- do.call(rbind,lapply(split(df,df$value),function(d) data.frame(value=d$value[1],mx=mean(d$x),my=mean(d$y))))
 ```
 
 As an exercise you can try extracting other summary values for the regions (area, for example, or aspect ratio).
@@ -464,7 +467,8 @@ If we try the same thing again it fails completely:
 get.centers <- function(im,thr="99%")
 {
     dt <- imhessian(im) %$% { xx*yy - xy^2 } %>% threshold(thr) %>% label
-    as.data.frame(dt) %>% subset(value>0) %>% dplyr::group_by(value) %>% dplyr::summarise(mx=mean(x),my=mean(y))
+    df <- as.data.frame(dt) %>% subset(value>0)
+    do.call(rbind,lapply(split(df,df$value),function(d) data.frame(value=d$value[1],mx=mean(d$x),my=mean(d$y))))
 }
 
 plot(nblobs)
@@ -507,7 +511,7 @@ plot(hessdet(hub,1),main="Determinant of the Hessian at scale 1")
 
 To view the results at different scales, we can use `ggplot`:
 
-```{r eval=has_jpeg, fig.width=7}
+```{r eval=has_jpeg && has_tidy, fig.width=7}
 library(purrr)
 
 #Get a data.frame with results at scale 2, 3 and 4
@@ -533,13 +537,12 @@ plot(i.max,main="Index of the point-wise maximum \n across scales")
 ```
 
 So far this isn't too informative. It will be once we have labelled regions:
-
-```{r eval=has_jpeg, fig.height=7,fig.width=8}
+```{r eval=has_jpeg && has_tidy, fig.height=7,fig.width=8}
 #Get a data.frame of labelled regions
 labs <- d.max %>% threshold("96%") %>% label %>% as.data.frame
 #Add scale indices
-labs <- mutate(labs,index=as.data.frame(i.max)$value)
-regs <- dplyr::group_by(labs,value) %>% dplyr::summarise(mx=mean(x),my=mean(y),scale.index=mean(index))
+labs$index <- as.data.frame(i.max)$value
+regs <- do.call(rbind,lapply(split(labs,labs$value),function(d) data.frame(value=d$value[1],mx=mean(d$x),my=mean(d$y),scale.index=mean(d$index))))
 p <- ggplot(as.data.frame(hub),aes(x,y))+geom_raster(aes(fill=value))+geom_point(data=regs,aes(mx,my,size=scale.index),pch=2,col="red")
 p+scale_fill_gradient(low="black",high="white")+scale_x_continuous(expand=c(0,0))+scale_y_continuous(expand=c(0,0),trans=scales::reverse_trans())
 ```

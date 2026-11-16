@@ -30,8 +30,8 @@ plot(hc)
 nms <- function(im,sigma) { im[dilate_square(im,sigma) != im] <- 0; im}
 hc.clean <- isoblur(hc,3) \%>\% nms(50)
 #Top ten matches
-df <- as.data.frame(hc.clean) \%>\%
-dplyr::arrange(desc(value)) \%>\% head(10)
+df <- as.data.frame(hc.clean)
+df <- head(df[order(-df$value),],10)
 with(df,circles(x,y,20,fg="red",lwd=3))
 \dontshow{\}) # examplesIf}
 }
