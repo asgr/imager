@@ -39,7 +39,7 @@ Videos are memory-intensive, and load.video performs a safety check before loadi
 \examples{
 \dontshow{cimg.limit.openmp()}
 
-fname <- system.file('extdata/tennis_sif.mpeg',package='imager')
+fname <- system.file('extdata/tennis_sif.mp4',package='imager')
 ##Not run
 ## load.video(fname) \%>\% play
 ## load.video(fname,fps=10) \%>\% play

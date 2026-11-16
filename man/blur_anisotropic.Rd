@@ -46,8 +46,10 @@ Can be 0=nearest-neighbor | 1=linear | 2=Runge-Kutta}
 Standard blurring removes noise from images, but tends to smooth away edges in the process. This anisotropic filter preserves edges better.
 }
 \examples{
+\dontshow{if (has.image.reader("jpeg")) withAutoprint(\{ # examplesIf}
 \dontshow{cimg.limit.openmp()}
 im <- load.image(system.file('extdata/Leonardo_Birds.jpg',package='imager'))
 im.noisy <- (im + 80*rnorm(prod(dim(im)))) 
 blur_anisotropic(im.noisy,ampl=1e4,sharp=1) \%>\% plot
+\dontshow{\}) # examplesIf}
 }

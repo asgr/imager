@@ -19,6 +19,7 @@ Detects circles of known radius in a pixset. The output is an image where the pi
 NB: in the current implementation, does not detect circles centred outside the limits of the pixset.
 }
 \examples{
+\dontshow{if (has.image.reader("png")) withAutoprint(\{ # examplesIf}
 \dontshow{cimg.limit.openmp()}
 im <- load.example('coins')
 px <- cannyEdges(im)
@@ -32,6 +33,7 @@ hc.clean <- isoblur(hc,3) \%>\% nms(50)
 df <- as.data.frame(hc.clean) \%>\%
 dplyr::arrange(desc(value)) \%>\% head(10)
 with(df,circles(x,y,20,fg="red",lwd=3))
+\dontshow{\}) # examplesIf}
 }
 \author{
 Simon Barthelme

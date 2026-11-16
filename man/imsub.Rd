@@ -29,6 +29,7 @@ subim is an alias defined for backward-compatibility.
 
 }}
 \examples{
+\dontshow{if (has.image.reader("png")) withAutoprint(\{ # examplesIf}
 \dontshow{cimg.limit.openmp()}
 parrots <- load.example("parrots")
 imsub(parrots,x < 30) #Only the first 30 columns
@@ -43,6 +44,7 @@ imsub(parrots,cc==1) #Colour axis is "cc" not "c" here because "c" is an importa
 ##Not run
 ##imsub(parrots,x+y==1)
 ##can't have expressions involving interactions between variables (domain might not be square)
+\dontshow{\}) # examplesIf}
 }
 \author{
 Simon Barthelme

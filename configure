@@ -4437,26 +4437,27 @@ else case e in #(
 esac
 fi
 
-  if test "$HAVE_LIBX11" = TRUE; then
+  # X11 is optional: headless systems (HPC login/compute nodes such as Pawsey
+  # Setonix) have no X11 headers or library, and imager must still install
+  # there. Without X11 we build with cimg_display=0; the display/interactive
+  # functions (display(), play(), grab*()) then raise an informative R error
+  # instead of opening a window. Everything else works unchanged.
+  if test "$HAVE_LIBX11" = TRUE && test x$no_x != xyes; then
     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: X11 library found." >&5
 printf "%s\n" "X11 library found." >&6; }
     DONT_HAVE_X11=''
-    #DONT_HAVE_X11='-Dcimg_display=0'
+    if test -n "${x_includes}"; then
+      CPPFLAGS="${CPPFLAGS} -I${x_includes}"
+    fi
+    if test -n "${x_libraries}"; then
+      LIBS="${LIBS} -L${x_libraries} -lX11"
+    else
+      LIBS="${LIBS} -lX11"
+    fi
   else
-    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: X11 library not found, please install X11 library if you need the display capabilities of CImg." >&5
-printf "%s\n" "X11 library not found, please install X11 library if you need the display capabilities of CImg." >&6; }
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: X11 not found; building without display support (cimg_display=0). Install X11 (e.g. XQuartz on macOS) if you need display()/grab*()." >&5
+printf "%s\n" "X11 not found; building without display support (cimg_display=0). Install X11 (e.g. XQuartz on macOS) if you need display()/grab*()." >&6; }
     DONT_HAVE_X11='-Dcimg_display=0'
-  fi
-  if test x$no_x = xyes ; then
-    as_fn_error $? "X11 not found but required, configure aborted." "$LINENO" 5
-  fi
-  if test -n "${x_includes}"; then
-    CPPFLAGS="${CPPFLAGS} -I${x_includes}"
-  fi
-  if test -n "${x_libraries}"; then
-    LIBS="${LIBS} -L${x_libraries} -lX11"
-  else
-    LIBS="${LIBS} -lX11"
   fi
 
   if test x$L_LIB != x; then
@@ -4660,24 +4661,24 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-                FFTW_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "fftw3" 2>&1`
+	        FFTW_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "fftw3" 2>&1`
         else
-                FFTW_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "fftw3" 2>&1`
+	        FFTW_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "fftw3" 2>&1`
         fi
-        # Put the nasty error message in config.log where it belongs
-        echo "$FFTW_PKG_ERRORS" >&5
+	# Put the nasty error message in config.log where it belongs
+	echo "$FFTW_PKG_ERRORS" >&5
 
-        :
+	:
 elif test $pkg_failed = untried; then
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-        :
+	:
 else
-        FFTW_CFLAGS=$pkg_cv_FFTW_CFLAGS
-        FFTW_LIBS=$pkg_cv_FFTW_LIBS
+	FFTW_CFLAGS=$pkg_cv_FFTW_CFLAGS
+	FFTW_LIBS=$pkg_cv_FFTW_LIBS
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
-        HAVE_FFTW=TRUE
+	HAVE_FFTW=TRUE
 fi
 
 if test "$HAVE_FFTW" != TRUE; then

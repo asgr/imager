@@ -338,7 +338,7 @@ NumericVector displacement(NumericVector sourceIm,NumericVector destIm,float smo
 //'  Can be 0=nearest-neighbor | 1=linear | 2=Runge-Kutta 
 //' @param fast_approx If true, use fast approximation (default TRUE)
 //' @export
-//' @examples
+//' @examplesIf has.image.reader("jpeg")
 //' \dontshow{cimg.limit.openmp()}
 //' im <- load.image(system.file('extdata/Leonardo_Birds.jpg',package='imager'))
 //' im.noisy <- (im + 80*rnorm(prod(dim(im)))) 

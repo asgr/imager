@@ -3,6 +3,9 @@
 
 AC_PREREQ([2.69])
 
+# PKG_CHECK_MODULES comes from pkg-config's pkg.m4, vendored in m4/ so that
+# regenerating configure only needs autoconf itself (no pkg-config install).
+m4_include([m4/pkg.m4])
 
 ## ---[ VERSION ]-------------------------------------------------------------
 
@@ -74,24 +77,25 @@ AC_PATH_PROG([PKGCONF],[pkg-config],[],[$PATH:/usr/local/bin:ext/bin:ext:/sw/bin
 
   AC_PATH_X
   AC_CHECK_LIB(X11, XOpenDisplay, [HAVE_LIBX11=TRUE], [HAVE_LIBX11=FALSE])
-  if test "$HAVE_LIBX11" = TRUE; then
+  # X11 is optional: headless systems (HPC login/compute nodes such as Pawsey
+  # Setonix) have no X11 headers or library, and imager must still install
+  # there. Without X11 we build with cimg_display=0; the display/interactive
+  # functions (display(), play(), grab*()) then raise an informative R error
+  # instead of opening a window. Everything else works unchanged.
+  if test "$HAVE_LIBX11" = TRUE && test x$no_x != xyes; then
     AC_MSG_RESULT([X11 library found.])
     DONT_HAVE_X11=''
-    #DONT_HAVE_X11='-Dcimg_display=0'
+    if test -n "${x_includes}"; then
+      CPPFLAGS="${CPPFLAGS} -I${x_includes}"
+    fi
+    if test -n "${x_libraries}"; then
+      LIBS="${LIBS} -L${x_libraries} -lX11"
+    else
+      LIBS="${LIBS} -lX11"
+    fi
   else
-    AC_MSG_RESULT([X11 library not found, please install X11 library if you need the display capabilities of CImg.])
+    AC_MSG_RESULT([X11 not found; building without display support (cimg_display=0). Install X11 (e.g. XQuartz on macOS) if you need display()/grab*().])
     DONT_HAVE_X11='-Dcimg_display=0'
-  fi
-  if test x$no_x = xyes ; then
-    AC_MSG_ERROR([X11 not found but required, configure aborted.])
-  fi
-  if test -n "${x_includes}"; then
-    CPPFLAGS="${CPPFLAGS} -I${x_includes}"
-  fi
-  if test -n "${x_libraries}"; then
-    LIBS="${LIBS} -L${x_libraries} -lX11"
-  else
-    LIBS="${LIBS} -lX11"
   fi
 
   if test x$L_LIB != x; then

@@ -440,7 +440,7 @@ displacement <- function(sourceIm, destIm, smoothness = 0.1, precision = 5.0, nb
 #'  Can be 0=nearest-neighbor | 1=linear | 2=Runge-Kutta 
 #' @param fast_approx If true, use fast approximation (default TRUE)
 #' @export
-#' @examples
+#' @examplesIf has.image.reader("jpeg")
 #' \dontshow{cimg.limit.openmp()}
 #' im <- load.image(system.file('extdata/Leonardo_Birds.jpg',package='imager'))
 #' im.noisy <- (im + 80*rnorm(prod(dim(im)))) 
@@ -501,7 +501,7 @@ interp_xyc <- function(inp, ix, iy, z, ic, cubic = FALSE) {
 #'       in 2d case, and between 6(false)- or 26(true)-connectivity in 3d case. Default FALSE
 #' @param tolerance Tolerance used to determine if two neighboring pixels belong to the same region.
 #' @export
-#' @examples
+#' @examplesIf has.image.reader("png")
 #' \dontshow{cimg.limit.openmp()}
 #' imname <- system.file('extdata/parrots.png',package='imager')
 #' im <- load.image(imname) %>% grayscale
@@ -528,7 +528,7 @@ blabel <- function(im, high_connectivity = FALSE) {
 #' @param boundary_conditions Boundary conditions. If FALSE, pixels beyond image boundaries are considered to be 0, if TRUE one. Default: TRUE.
 #' @param real_mode If TRUE, perform erosion as defined on the reals. If FALSE, perform binary erosion (default FALSE).
 #' @export
-#' @examples
+#' @examplesIf has.image.reader("jpeg")
 #' \dontshow{cimg.limit.openmp()}
 #' fname <- system.file('extdata/Leonardo_Birds.jpg',package='imager')
 #' im <- load.image(fname) %>% grayscale
@@ -966,6 +966,10 @@ set_omp_num_threads <- function(threads) {
 
 has_omp <- function() {
     .Call(`_imager_has_omp`)
+}
+
+has_tiff <- function() {
+    .Call(`_imager_has_tiff`)
 }
 
 px_split <- function(im, axis, nb = -1L) {

@@ -15,12 +15,17 @@ an image
 \description{
 Imager ships with five test pictures and a video. Two (parrots and boats) come from the [Kodak set](http://r0k.us/graphics/kodak/). Another (birds) is a sketch of birds by Leonardo, from Wikimedia. The "coins" image comes from scikit-image. The Hubble Deep field (hubble) is from Wikimedia.
 The test video ("tennis") comes from [xiph.org](https://media.xiph.org/video/derf/)'s collection.
+The pictures are stored as PNG and JPEG, so loading them needs one of the
+optional readers (see \link{has.image.reader}). The "boats" picture is also
+available as the \link{boats} dataset, which needs no reader at all.
 }
 \examples{
+\dontshow{if (has.image.reader("png") && has.image.reader("jpeg")) withAutoprint(\{ # examplesIf}
 \dontshow{cimg.limit.openmp()}
 load.example("hubble") \%>\% plot
 load.example("birds") \%>\% plot
 load.example("parrots") \%>\% plot
+\dontshow{\}) # examplesIf}
 }
 \author{
 Simon Barthelme

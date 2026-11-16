@@ -34,12 +34,14 @@ imchange(boats,~ px.borders(.,10),~ 0)
 imchange(boats,~ px.borders(.,10),~ xs) \%>\% plot
 #Kill red channel in image
 imchange(boats,~ c==1,~ 0) \%>\% plot
-#Shit hue by an amount depending on eccentricity
+#Shift hue by an amount depending on eccentricity (needs a PNG reader)
+if (has.image.reader("png")) {
 load.example("parrots") \%>\%
   RGBtoHSL \%>\%
   imchange(~ c==1,~ .+80*exp(-(rho/550)^2) ) \%>\%
   HSLtoRGB \%>\%
   plot
+}
 
 }
 \seealso{

@@ -21,6 +21,7 @@ by A. Meijster, according to the publication:
       In: Science of Computer Programming 41 (2001), pp. 173--194'.
 }
 \examples{
+\dontshow{if (has.image.reader("png")) withAutoprint(\{ # examplesIf}
 \dontshow{cimg.limit.openmp()}
 imname <- system.file('extdata/parrots.png',package='imager')
 im <- load.image(imname) \%>\% grayscale
@@ -30,5 +31,5 @@ labels <- label(regions)
 layout(t(1:2))
 plot(regions,"Regions")
 plot(labels,"Labels")
-
+\dontshow{\}) # examplesIf}
 }

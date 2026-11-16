@@ -25,6 +25,7 @@ This works well if the pixel values have a clear bimodal distribution. If you ca
 Computing quantiles or running kmeans is expensive for large images, so if approx == TRUE threshold will skip pixels if the total number of pixels is above 10,000. Note that thresholding a colour image will threshold all the colour channels jointly, which may not be the desired behaviour! Use iiply(im,"c",threshold) to find optimal values for each channel separately.
 }
 \examples{
+\dontshow{if (has.image.reader("jpeg")) withAutoprint(\{ # examplesIf}
 \dontshow{cimg.limit.openmp()}
 im <- load.example("birds")
 im.g <- grayscale(im)
@@ -35,6 +36,7 @@ threshold(im.g,.1) \%>\% plot
 #using "adjust"
 threshold(im,adjust=.5) \%>\% plot
 threshold(im,adjust=1.3) \%>\% plot
+\dontshow{\}) # examplesIf}
 }
 \author{
 Simon Barthelme

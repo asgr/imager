@@ -16,7 +16,8 @@
 #' #Disconnect central pixel
 #' px[5] <- FALSE
 #' as.igraph(px) %>% plot
-#' #Form graph from thresholded image
+#' #Form graph from thresholded image (needs a PNG reader)
+#' if (has.image.reader("png")) {
 #' im <- load.example("coins")
 #' px <- threshold(im) %>% fill(5)
 #' G <- as.igraph(px)
@@ -30,6 +31,7 @@
 #' end <- index.coord(im,data.frame(x=384,y=300))
 #' sp <- igraph::shortest_paths(G,start,end,output="vpath")
 #' path <- sp$vpath[[1]] %>% as.integer %>% coord.index(im,.)
+#' }
 #' @export
 as.igraph.pixset <- function(x,weighted=TRUE,...)
 {

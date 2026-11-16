@@ -1,3 +1,12 @@
+# imager 1.1.0 Optional image IO dependencies
+
+* X11 is now optional at build time. `configure` previously aborted when X11 was missing, which blocked installation on headless HPC systems (e.g. Pawsey Setonix); it now builds with `cimg_display=0` instead. The interactive functions (`display()`, `play()`, `grabPoint()`/`grabLine()`/`grabRect()`) raise an informative error in that build; everything else works unchanged. X11 is also no longer linked when it was not detected.
+* The `png`, `jpeg` and `readbitmap` packages moved from Imports to Suggests, and `tiff` was added to Suggests. imager now installs and loads without any of them, which makes installation on HPC systems much easier: `readbitmap` pulls in `bmp`, `jpeg`, `png` and `tiff`, all of which need system libraries that are often unavailable on clusters. Image processing, plotting and the bundled `boats` dataset never needed file IO and are unaffected.
+* `has.image.reader(format, action)` is new: it reports whether a format can be read or written on the current installation, taking into account installed suggested packages, CImg's native formats and ImageMagick on the PATH. Examples and vignettes that load the bundled PNG/JPEG pictures are conditional on it, so `R CMD check` passes on a minimal installation.
+* `has.magick()` now looks for `magick`, `convert` and `gm`, the binaries CImg actually invokes. It previously looked for `conjure` and `montage`, which CImg never calls, so ImageMagick installations providing only `convert` went undetected.
+* `load.image()` and `save.image()` now use whichever reader is available, in order of preference: the format-specific package (`png`, `jpeg`, `tiff`), then `readbitmap`, then CImg itself, then external ImageMagick/GraphicsMagick. BMP is read and written by CImg natively, so it works with no optional package at all, as do the other native CImg formats (PNM/PPM/PGM, `.cimg`, Analyze, INR). TIFF works without any R package when imager was built against libtiff, which `configure` already treats as optional. When no reader is available the error message names the packages that would help instead of reporting an unsupported format.
+* `save.video()` writes BMP frames instead of PNG when the `png` package is absent, so video export no longer requires it (ffmpeg is still needed).
+
 # imager 1.0.10 CImg update and forward-warp correctness fix
 
 * Re-vendored the bundled CImg header from 3.3.4 to **4.0.7**. imager no longer

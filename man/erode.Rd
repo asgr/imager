@@ -75,6 +75,7 @@ Erode/dilate image by a structuring element.
 
 }}
 \examples{
+\dontshow{if (has.image.reader("jpeg")) withAutoprint(\{ # examplesIf}
 \dontshow{cimg.limit.openmp()}
 fname <- system.file('extdata/Leonardo_Birds.jpg',package='imager')
 im <- load.image(fname) \%>\% grayscale
@@ -87,4 +88,5 @@ plot(erode_square(outline,5))
 plot(dilate(outline,mask))
 plot(dilate_rect(outline,5,10))
 plot(dilate_square(outline,5)) 
+\dontshow{\}) # examplesIf}
 }

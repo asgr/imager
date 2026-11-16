@@ -17,17 +17,27 @@ save.image(im, file, quality = 0.7)
 nothing
 }
 \description{
-You'll need ImageMagick for formats other than PNG and JPEG.
+BMP is written by CImg itself, so it always works. PNG, JPEG and TIFF are
+written by the suggested packages png, jpeg and tiff when they are
+installed. None of them are required: TIFF also works without any extra
+package if imager was built against libtiff, and ImageMagick (or
+GraphicsMagick) on the PATH covers every other format, including PNG and
+JPEG. Use \link{has.image.reader} to find out what is available.
 }
 \examples{
 \dontshow{cimg.limit.openmp()}
-#Create temporary file
+#BMP needs no extra package
+tmpF <- tempfile(fileext=".bmp")
+save.image(boats,tmpF)
+load.image(tmpF) \%>\% plot
+\dontshow{if (has.image.reader("png","save")) withAutoprint(\{ # examplesIf}
 tmpF <- tempfile(fileext=".png")
 #Save boats image
 save.image(boats,tmpF)
 #Read back and display
 load.image(tmpF) \%>\% plot
+\dontshow{\}) # examplesIf}
 }
 \seealso{
-save.video
+save.video, has.image.reader
 }

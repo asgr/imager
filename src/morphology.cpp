@@ -14,7 +14,7 @@ using namespace cimg_library;
 //'       in 2d case, and between 6(false)- or 26(true)-connectivity in 3d case. Default FALSE
 //' @param tolerance Tolerance used to determine if two neighboring pixels belong to the same region.
 //' @export
-//' @examples
+//' @examplesIf has.image.reader("png")
 //' \dontshow{cimg.limit.openmp()}
 //' imname <- system.file('extdata/parrots.png',package='imager')
 //' im <- load.image(imname) %>% grayscale
@@ -53,7 +53,7 @@ NumericVector blabel(LogicalVector im,bool high_connectivity=false)
 //' @param boundary_conditions Boundary conditions. If FALSE, pixels beyond image boundaries are considered to be 0, if TRUE one. Default: TRUE.
 //' @param real_mode If TRUE, perform erosion as defined on the reals. If FALSE, perform binary erosion (default FALSE).
 //' @export
-//' @examples
+//' @examplesIf has.image.reader("jpeg")
 //' \dontshow{cimg.limit.openmp()}
 //' fname <- system.file('extdata/Leonardo_Birds.jpg',package='imager')
 //' im <- load.image(fname) %>% grayscale

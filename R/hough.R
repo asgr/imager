@@ -102,7 +102,7 @@ nfline <- function(theta,rho,col,...)
 ##' @param radius radius of circle 
 ##' @return a histogram of Hough scores, with the same dimension as the original image. 
 ##' @author Simon Barthelme
-##' @examples
+##' @examplesIf has.image.reader("png")
 ##' \dontshow{cimg.limit.openmp()}
 ##' im <- load.example('coins')
 ##' px <- cannyEdges(im)

@@ -7,7 +7,7 @@
 \title{imager: an R library for image processing, based on CImg}
 \description{
 CImg by David Tschumperle is a C++ library for image processing. It provides most common functions for image manipulation and filtering, as well as some advanced algorithms. imager makes these functions accessible from R and adds many utilities for accessing and working with image data from R.
-You should install ImageMagick if you want support for image formats beyond PNG and JPEG, and ffmpeg if you need to work with videos (in which case you probably also want to take a look at experimental package imagerstreams on github).
+Reading and writing image files is deliberately optional, so that imager installs on systems where the underlying libraries are hard to obtain. BMP works out of the box; PNG, JPEG and TIFF work when the suggested packages png, jpeg and tiff (or readbitmap) are installed, and ImageMagick covers everything else. See has.image.reader() for what is available, and load.image() for details. Install ffmpeg if you need to work with videos (in which case you probably also want to take a look at experimental package imagerstreams on github).
 Package documentation is available at http://asgr.github.io/imager/.
 }
 \seealso{

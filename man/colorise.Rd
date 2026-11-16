@@ -22,6 +22,7 @@ an image
 Paint all pixels in pixset px with the same colour
 }
 \examples{
+\dontshow{if (has.image.reader("png")) withAutoprint(\{ # examplesIf}
 \dontshow{cimg.limit.openmp()}
 im <- load.example("coins")
 colorise(im,Xc(im) < 50,"blue") \%>\% plot
@@ -31,6 +32,7 @@ colorise(im,~ x < 50,"blue") \%>\% plot
 colorise(im,~ x < 50,"blue",alpha=.5) \%>\% plot
 #Highlight pixels with low luminance values
 colorise(im,~ . < 0.3,"blue",alpha=.2) \%>\% plot
+\dontshow{\}) # examplesIf}
 }
 \author{
 Simon Barthelme

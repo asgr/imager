@@ -18,6 +18,7 @@ im = periodic + smooth
 where the periodic part shouldn't be too far from the original image. The periodic part can be used in frequency-domain analyses, to reduce the artifacts induced by non-periodicity.
 }
 \examples{
+\dontshow{if (has.image.reader("png")) withAutoprint(\{ # examplesIf}
 \dontshow{cimg.limit.openmp()}
 im <- load.example("parrots") \%>\% subim(x <= 512)
 layout(t(1:3))
@@ -26,7 +27,7 @@ periodic.part(im) \%>\% plot(main="Periodic part")
 #The smooth error is the difference between
 #the original image and its periodic part
 (im-periodic.part(im)) \%>\% plot(main="Smooth part")
-
+\dontshow{\}) # examplesIf}
 }
 \references{
 L. Moisan, Periodic plus Smooth Image Decomposition,J. Math. Imaging Vision, vol. 39:2, pp. 161-179, 2011

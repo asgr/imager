@@ -30,14 +30,14 @@ If that doesn't work then you're probably missing a build environment or a libra
 
 ### OS X
 
-Install [XQuartz](https://www.xquartz.org/) if you haven't already (it's required for the interactive functions). 
-You'll need Xcode (OS X's development environment) to compile source packages. The FFTW library is needed, and the easiest way to install it is via [Homebrew](http://brew.sh/). Install Homebrew, then run:
+Install [XQuartz](https://www.xquartz.org/) if you want the interactive functions (`display()`, `play()`, `grab*()`); it is optional, and imager builds without it.
+You'll need Xcode (OS X's development environment) to compile source packages. The optional FFTW library speeds up FFT-based functions, and the easiest way to install it is via [Homebrew](http://brew.sh/). Install Homebrew, then run:
 
 ```sh
 brew install fftw
 ```
 
-Optionally, install libtiff for better support of TIFF files. 
+Optionally, install libtiff for TIFF support without needing the `tiff` R package. FFTW and libtiff are both optional: configure falls back to a build without them rather than failing.
 
 ### Windows
 
@@ -48,7 +48,11 @@ Building R packages on Windows is a bit of a pain so you're probably better off 
 
 ### Linux
 
-To build imager from source under Linux, make sure you have the headers for `libfftw3`, `libx11` (if not using [Wayland](https://en.wikipedia.org/wiki/Wayland_(protocol))), and optionally `libtiff` installed. To determine a complete list of all required system dependencies (incl. transitive ones), you can query the [SystemRequirements database](https://github.com/r-hub/sysreqsdb) via the R package [sysreqs](https://github.com/r-hub/sysreqs).
+To build imager from source under Linux there are no required system libraries: `libx11`, `libfftw3` and `libtiff` are all optional, and configure falls back gracefully when they are missing. Without X11 the interactive functions (`display()`, `play()`, `grab*()`) are unavailable; without FFTW you lose some FFT performance; without libtiff you lose native TIFF support. Everything else builds and works.
+
+On a headless cluster such as Pawsey Setonix, a plain `install.packages("imager")` gives you the full image-processing API with no system libraries at all. You can read and write BMP with no extra dependencies, or install the suggested `png`/`jpeg`/`tiff` packages into your own R library if you need those formats. If FFTW is available as a module (`module load fftw`), loading it before installation enables the faster FFT paths.
+
+To determine a complete list of all system dependencies (incl. transitive ones), you can query the [SystemRequirements database](https://github.com/r-hub/sysreqsdb) via the R package [sysreqs](https://github.com/r-hub/sysreqs).
 
 <details><summary>Example R code to determine all required system dependencies for Ubuntu Linux:</summary>
 
@@ -78,21 +82,49 @@ sysreqs::sysreqs(desc = tmp,
 
 <sup>Created on 2023-04-13 with [reprex v2.0.2](https://reprex.tidyverse.org)</sup>
 
-The last line above indicates the required system packages.
+The last line above lists system packages, several of which are optional (see above).
 
 </details>
 
-On Ubuntu (or Debian) Linux you would install them via
+On Ubuntu (or Debian) Linux, nothing is required beyond a compiler toolchain. All of the following are optional:
 
 ```sh
-sudo apt install libfftw3-dev libtiff-dev libxml2-dev libicu-dev libgmp-dev libpng-dev libglpk-dev
+# X11 for the interactive functions (display(), play(), grab*())
+sudo apt install libx11-dev
+# FFTW and libtiff for faster FFTs and native TIFF support
+sudo apt install libfftw3-dev libtiff-dev
 ```
+
+The remaining packages in the list above (`libxml2-dev`, `libicu-dev`, `libgmp-dev`, `libpng-dev`, `libglpk-dev`) come from the suggested R packages, not from imager itself. You only need them if you install those.
 
 ### External dependencies
 
-OS X users need [XQuartz](https://www.xquartz.org/). 
-On its own imager supports JPEG, PNG, TIFF and BMP formats. If you need support for other file types install [ImageMagick](http://www.imagemagick.org/script/download.php).
-To load and save videos you'll need [ffmpeg](http://ffmpeg.org/download.html), no file formats are supported natively.
+OS X users can install [XQuartz](https://www.xquartz.org/) for the interactive functions; it is optional.
+To load and save videos you'll need [ffmpeg](http://ffmpeg.org/download.html), no video formats are supported natively.
+
+### Image file formats
+
+Reading and writing image files is deliberately **optional**, so that imager installs cleanly on systems where the underlying libraries are hard to obtain (HPC clusters, for instance). Nothing beyond a C++ compiler is needed to install the package and process images.
+
+- **BMP** is read and written by CImg itself, so it always works. So do the native CImg formats (PNM/PPM/PGM, `.cimg`, Analyze, INR, ...).
+- **PNG**, **JPEG** and **TIFF** work when the suggested packages [png](https://cran.r-project.org/package=png), [jpeg](https://cran.r-project.org/package=jpeg) and [tiff](https://cran.r-project.org/package=tiff) are installed (`readbitmap` also works). TIFF additionally works with no extra package if imager was built against libtiff.
+- **Anything else**, including PNG/JPEG without those packages, works if you install [ImageMagick](http://www.imagemagick.org/script/download.php) or GraphicsMagick.
+
+To install the optional readers:
+
+```r
+install.packages(c("png", "jpeg", "tiff"))
+```
+
+Use `has.image.reader()` to see what your installation can handle:
+
+```r
+has.image.reader("bmp")         # TRUE, always
+has.image.reader("png")         # TRUE if png/readbitmap is installed, or ImageMagick
+has.image.reader("tiff", "save")
+```
+
+All image processing, plotting and the bundled `boats` dataset work regardless, since they need no file IO.
 
 
 ## Getting started 

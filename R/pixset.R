@@ -256,7 +256,7 @@ grow <- function(px,x,y=x,z=x,boundary=TRUE)
 ##' Cleaning up can be achieved by shrinking the set (removing speckle), followed by growing it back up. Filling in can be achieved by growing the set (removing holes), and shrinking it again. 
 ##' @param px a pixset
 ##' @param ... parameters that define the structuring element to use, passed on to "grow" and "shrink"
-##' @examples
+##' @examplesIf has.image.reader("jpeg")
 ##' \dontshow{cimg.limit.openmp()}
 ##  #A pixset
 ##' im <- load.example("birds") %>% grayscale
@@ -764,7 +764,7 @@ px.na <- function(im)
 ##' @param col colour to fill in. either a vector of numeric values or a string (e.g. "red")
 ##' @param alpha transparency (default 1, no transparency)
 ##' @return an image
-##' @examples
+##' @examplesIf has.image.reader("png")
 ##' \dontshow{cimg.limit.openmp()}
 ##' im <- load.example("coins")
 ##' colorise(im,Xc(im) < 50,"blue") %>% plot

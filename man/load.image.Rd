@@ -13,17 +13,28 @@ load.image(file)
 an object of class 'cimg'
 }
 \description{
-PNG, JPEG and BMP are supported via the readbitmap package, WEBP is
-supported via the webp package (with ImageMagick backup). You'll need to
-install ImageMagick for other formats. If the path is actually a URL, it
-should start with http(s) or ftp(s).
+BMP is read by CImg itself, so it always works. PNG, JPEG, TIFF and WEBP
+are read by the suggested packages png, jpeg, tiff, readbitmap and webp
+when they are installed. None of them are required: TIFF also works
+without any extra package if imager was built against libtiff, and
+ImageMagick (or GraphicsMagick) on the PATH covers every other format,
+including PNG and JPEG. Use \link{has.image.reader} to find out what is
+available on your system.
+}
+\details{
+If the path is actually a URL, it should start with http(s) or ftp(s).
 }
 \examples{
 \dontshow{cimg.limit.openmp()}
+#What can we read on this machine?
+has.image.reader("bmp")
+has.image.reader("png")
+\dontshow{if (has.image.reader("jpeg")) withAutoprint(\{ # examplesIf}
 #Find path to example file from package
 fpath <- system.file('extdata/Leonardo_Birds.jpg',package='imager')
 im <- load.image(fpath)
 plot(im)
 #Load the R logo directly from the CRAN webpage
 #load.image("https://cran.r-project.org/Rlogo.jpg") \%>\% plot
+\dontshow{\}) # examplesIf}
 }

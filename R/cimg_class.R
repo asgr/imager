@@ -1,7 +1,7 @@
 #' imager: an R library for image processing, based on CImg
 #'
 #' CImg by David Tschumperle is a C++ library for image processing. It provides most common functions for image manipulation and filtering, as well as some advanced algorithms. imager makes these functions accessible from R and adds many utilities for accessing and working with image data from R.
-#' You should install ImageMagick if you want support for image formats beyond PNG and JPEG, and ffmpeg if you need to work with videos (in which case you probably also want to take a look at experimental package imagerstreams on github).
+#' Reading and writing image files is deliberately optional, so that imager installs on systems where the underlying libraries are hard to obtain. BMP works out of the box; PNG, JPEG and TIFF work when the suggested packages png, jpeg and tiff (or readbitmap) are installed, and ImageMagick covers everything else. See has.image.reader() for what is available, and load.image() for details. Install ffmpeg if you need to work with videos (in which case you probably also want to take a look at experimental package imagerstreams on github).
 #' Package documentation is available at http://asgr.github.io/imager/.
 #' @docType package
 #' @name imager
@@ -14,9 +14,6 @@
 #' @importFrom graphics axis plot rasterImage layout lines plot.new plot.window title abline polygon
 #' @importFrom stats quantile rnorm kmeans setNames
 #' @importFrom purrr map map_dbl map_lgl map_df map2 map_int pmap reduce keep
-#' @importFrom png readPNG writePNG
-#' @importFrom jpeg writeJPEG readJPEG
-#' @importFrom readbitmap read.bitmap
 #' @importFrom methods is
 #' @importFrom stringr str_match str_split str_sub
 #' @importFrom Rcpp sourceCpp
@@ -495,7 +492,7 @@ all.names <- function(..., na.rm)
 ##' @param ... various conditions defining a rectangular image region
 ##' @return an image with some parts cut out
 ##' @author Simon Barthelme
-##' @examples
+##' @examplesIf has.image.reader("png")
 ##' \dontshow{cimg.limit.openmp()}
 ##' parrots <- load.example("parrots")
 ##' imsub(parrots,x < 30) #Only the first 30 columns

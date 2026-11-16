@@ -24,14 +24,17 @@ library(imager)
 
 ```{r include=FALSE}
 cimg.limit.openmp()
+#The bundled parrots picture is a PNG, and reading PNG needs one of the
+#optional readers. Fall back to the boats dataset, which needs no reader.
+has_png <- has.image.reader("png")
 ```
 
 # From images to pixsets and back
 
-A pixset is what you get if you run a test on an image: 
+A pixset is what you get if you run a test on an image (we use the bundled parrots picture if a PNG reader is available, and the `boats` dataset otherwise): 
 
 ```{r}
-im <- load.example('parrots') %>% grayscale
+im <- if (has_png) grayscale(load.example('parrots')) else grayscale(boats)
 px <- im > .6 #Select pixels with high luminance
 px
 plot(px)
@@ -120,8 +123,8 @@ In segmentation problems one usually wants contiguous regions: px.flood uses the
 
 ```{r}
 plot(im)
-#Start the fill at location (180,274). sigma sets the tolerance
-px.flood(im,180,274,sigma=.21) %>% highlight
+#Start the fill about a third of the way in. sigma sets the tolerance
+px.flood(im,round(width(im)*.35),round(height(im)*.36),sigma=.21) %>% highlight
 ```
 
 It's also common to want to split a pixset into contiguous regions: use split_connected.
@@ -245,22 +248,22 @@ imsplit(px,"c") %>% parany %>% highlight
 
 # An example: segmentation with pixsets
 
-The following example is derived from the documentation for [scikit-image](https://scikit-image.org/docs/dev/user_guide/tutorial_segmentation.html). The objective is to segment the coins from the background. 
+The following example is derived from the documentation for [scikit-image](https://scikit-image.org/docs/dev/user_guide/tutorial_segmentation.html). The objective is to segment the coins from the background. The coins picture is a PNG, so this section is skipped when no PNG reader is installed (see `?load.image`).
 
-```{r}
+```{r eval=has_png}
 im <- load.example("coins")
 plot(im)
 ```
 
 A simple thresholding doesn't work because the illumination varies: 
 
-```{r}
+```{r eval=has_png}
 threshold(im) %>% plot
 ```
 
 It's possible to correct the illumination using a linear model: 
 
-```{r}
+```{r eval=has_png}
 library(dplyr)
 d <- as.data.frame(im)
 ##Subsamble, fit a linear model
@@ -273,14 +276,14 @@ plot(out)
 
 Although that's much better we need to clean this up a bit: 
 
-```{r}
+```{r eval=has_png}
 out <- clean(out,3) %>% imager::fill(7)
 plot(im)
 highlight(out)
 ```
 
 Another approach is to use a watershed. We start from seeds regions representing known foreground and known background pixels: 
-```{r fig.width=8}
+```{r eval=has_png, fig.width=8}
 bg <- (!threshold(im.c,"10%"))
 fg <- (threshold(im.c,"90%"))
 imlist(fg,bg) %>% plot(layout="row")
@@ -291,7 +294,7 @@ plot(seed)
 
 The watershed transform will propagate background and foreground labels to neighbouring pixels, according to a priority map (the lower the priority, the slower the propagation). Using the priority map it's possible to prevent label propagation across image edges:
 
-```{r}
+```{r eval=has_png}
 edges <- imgradient(im,"xy") %>% enorm
 p <- 1/(1+edges)
 plot(p)
@@ -299,33 +302,33 @@ plot(p)
 
 We run the watershed transform:
 
-```{r}
+```{r eval=has_png}
 ws <- (watershed(seed,p)==1)
 plot(ws)
 ```
 
 We still need to fill in some holes and remove a spurious area. To fill in holes, we use a bucket fill on the background starting from the top-left corner: 
 
-```{r}
+```{r eval=has_png}
 ws <- bucketfill(ws,1,1,color=2) %>% {!( . == 2) }
 plot(ws)
 ```
 
 To remove the spurious area one possibility is to use "clean":
-```{r}
+```{r eval=has_png}
 clean(ws,5) %>% plot
 ```
 
 Another is to split the pixset into connected components, and remove ones with small areas:
 
-```{r}
+```{r eval=has_png}
 split_connected(ws) %>% purrr::discard(~ sum(.) < 100) %>%
     parany %>% plot
 ```
 
 Here's a comparison of the segmentations obtained using the two methods:
 
-```{r fig.width=8}
+```{r eval=has_png, fig.width=8}
 layout(t(1:2))
 plot(im,main="Thresholding")
 highlight(out)

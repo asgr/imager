@@ -45,6 +45,7 @@ Note that 3D warps are possible as well.
 The mapping should be specified via the "map" argument, see examples.
 }
 \examples{
+\dontshow{if (has.image.reader("png")) withAutoprint(\{ # examplesIf}
 \dontshow{cimg.limit.openmp()}
 im <- load.example("parrots")
 #Shift image
@@ -66,6 +67,7 @@ imwarp(im,map=map.scaling.inv,dir="backward") \%>\% plot #No holes
 #Bending
 map.bend.rel <- function(x,y) list(x=50*sin(y/10),y=0*y)
 imwarp(im,map=map.bend.rel,coord="relative",dir="backward") \%>\% plot #No holes
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 warp for direct access to the CImg function

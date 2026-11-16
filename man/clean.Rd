@@ -24,6 +24,7 @@ Cleaning up can be achieved by shrinking the set (removing speckle), followed by
 
 }}
 \examples{
+\dontshow{if (has.image.reader("jpeg")) withAutoprint(\{ # examplesIf}
 \dontshow{cimg.limit.openmp()}
 im <- load.example("birds") \%>\% grayscale
 sub <- imsub(-im,y> 380) \%>\% threshold("85\%")
@@ -37,6 +38,7 @@ clean(px,3) \%>\% plot(main="After clean-up")
 px <- clean(px,3)
 plot(px,main="Before filling-in")
 fill(px,28) \%>\% plot(main="After filling-in")
+\dontshow{\}) # examplesIf}
 }
 \author{
 Simon Barthelme

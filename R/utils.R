@@ -8,7 +8,7 @@
 ##'
 ##' @param im an image
 ##' @return an image
-##' @examples
+##' @examplesIf has.image.reader("png")
 ##' \dontshow{cimg.limit.openmp()}
 ##' im <- load.example("parrots") %>% subim(x <= 512)
 ##' layout(t(1:3))
@@ -83,7 +83,7 @@ FFT <- function(im.real,im.imag,inverse=FALSE)
 ##' @references
 ##' For double-scale, triple-scale, etc. uses an anisotropic scaling algorithm described in: \url{http://www.scale2x.it/algorithm.html}. For half-scaling uses what the CImg doc describes as an "optimised filter", see resize_halfXY in CImg.h.
 ##' @seealso resize
-##' @examples
+##' @examplesIf has.image.reader("png")
 ##' \dontshow{cimg.limit.openmp()}
 ##' im <- load.example("parrots")
 ##' imresize(im,1/4) #Quarter size
@@ -149,7 +149,7 @@ imhessian <- function(im,axes=c("xx","xy","yy"))
 ##' @param z location
 ##' @param opacity transparency level (default 1)
 ##' @author Simon Barthelme
-##' @examples
+##' @examplesIf has.image.reader("png")
 ##' \dontshow{cimg.limit.openmp()}
 ##' im <- load.example("parrots")
 ##' boats.small <- imresize(boats,.5)
@@ -283,7 +283,7 @@ imgradient <- function(im,axes="xy",scheme=3)
 ##' @param boundary boundary conditions: "dirichlet", "neumann", "periodic". Default "dirichlet"
 ##' @param interpolation "nearest", "linear", "cubic" (default "linear")
 ##' @return a warped image
-##' @examples
+##' @examplesIf has.image.reader("png")
 ##' \dontshow{cimg.limit.openmp()}
 ##' im <- load.example("parrots")
 ##' #Shift image
@@ -412,7 +412,7 @@ imdirac <- function(dims,x,y,z=1,cc=1)
 ##' @param approx Skip pixels when computing quantiles in large images (default TRUE)
 ##' @param adjust use to adjust the automatic threshold: if the auto-threshold is at k, effective threshold will be at adjust*k (default 1)
 ##' @return a pixset with the selected pixels
-##' @examples
+##' @examplesIf has.image.reader("jpeg")
 ##' \dontshow{cimg.limit.openmp()}
 ##' im <- load.example("birds")
 ##' im.g <- grayscale(im)

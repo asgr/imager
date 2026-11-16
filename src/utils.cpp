@@ -300,6 +300,18 @@ bool has_omp()
 #endif
 }
 
+// Whether configure found libtiff, i.e. whether CImg can read/write TIFF
+// without an R package or an external ImageMagick.
+// [[Rcpp::export]]
+bool has_tiff()
+{
+#ifdef cimg_use_tiff
+  return true;
+#else
+  return false;
+#endif
+}
+
 // [[Rcpp::export]]
 List px_split(LogicalVector im,char axis,int nb=-1)
 {

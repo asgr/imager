@@ -1,0 +1,100 @@
+# Headless / minimal-dependency check: the Pawsey Setonix install path.
+#
+# HPC login and compute nodes typically have no X11, no FFTW/libtiff and none
+# of imager's suggested reader packages. This job reproduces that environment
+# and asserts two things:
+#   1. configure succeeds anyway, building with cimg_display=0 and without
+#      linking -lX11 (it used to abort with "X11 not found but required").
+#   2. R CMD check passes with _R_CHECK_DEPENDS_ONLY_=true, which makes
+#      Suggests (png, jpeg, readbitmap, tiff, ...) unavailable to examples,
+#      tests and vignettes, exactly as on a bare cluster install.
+#
+# Deliberately no apt installs of xorg/fftw/libtiff here, unlike the main
+# R-CMD-check workflow. The runner image does ship some libraries (e.g.
+# libfftw3 via other tooling), so the configure step forces X11 detection off
+# via autoconf cache variables and then asserts on the resulting Makevars
+# rather than trusting what happens to be installed.
+name: headless-check
+
+on:
+  push:
+  pull_request:
+
+permissions: read-all
+
+jobs:
+  headless-check:
+    runs-on: ubuntu-latest
+    name: headless (no X11, Suggests unavailable)
+
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      R_KEEP_PKG_SOURCE: yes
+      # Suggests must not be visible to examples/tests/vignettes.
+      _R_CHECK_DEPENDS_ONLY_: true
+      # Do not let a suggested-package absence turn into a check error.
+      _R_CHECK_FORCE_SUGGESTS_: false
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-pandoc@v2
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: 'release'
+          use-public-rspm: true
+
+      - name: Confirm patch utility is available
+        run: |
+          if ! command -v patch >/dev/null 2>&1; then
+            echo "::error::the 'patch' utility is required to build imager"
+            exit 1
+          fi
+
+      # Force the headless outcome regardless of what the runner image
+      # happens to ship, and assert configure degrades instead of aborting.
+      # The generated src/Makevars is left in place so the package build
+      # below uses exactly this configuration.
+      - name: Configure without X11 and verify graceful fallback
+        run: |
+          ./configure ac_cv_have_x="have_x=no" ac_cv_lib_X11_XOpenDisplay=no
+          grep -q 'cimg_display=0' src/Makevars \
+            || { echo "::error::configure did not disable display support"; exit 1; }
+          if grep -q '\-lX11' src/Makevars; then
+            echo "::error::configure linked -lX11 despite X11 being unavailable"
+            exit 1
+          fi
+
+      # needs: only installs hard dependencies; with _R_CHECK_DEPENDS_ONLY_
+      # the suggested readers are invisible during the check either way.
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::rcmdcheck
+          needs: check
+
+      - uses: r-lib/actions/check-r-package@v2
+        with:
+          args: 'c("--no-manual")'
+          upload-snapshots: true
+          build_args: 'c("--no-manual")'
+          error-on: '"warning"'
+
+      # Belt and braces: the display functions must fail with the informative
+      # R error (not a crash), and BMP IO must work with zero suggested packages.
+      # Load the package from the check's own installed library so we test the
+      # exact binary R CMD check just exercised, built with cimg_display=0.
+      - name: Smoke-test the headless install
+        shell: Rscript {0}
+        run: |
+          checkdir <- dir("check", pattern = "\\.Rcheck$", full.names = TRUE)[1]
+          library(imager, lib.loc = checkdir)
+          stopifnot(imager::has.image.reader("bmp"))
+          f <- tempfile(fileext = ".bmp")
+          save.image(boats, f)
+          im <- load.image(f)
+          stopifnot(identical(dim(im), dim(boats)))
+          msg <- tryCatch({ display(boats); NA_character_ },
+                          error = function(e) conditionMessage(e))
+          stopifnot(grepl("X11", msg))
+          cat("headless smoke test OK\n")

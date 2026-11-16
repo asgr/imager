@@ -30,6 +30,10 @@ plot(boats)
 
 ```{r include=FALSE}
 cimg.limit.openmp()
+#Reading PNG/JPEG needs one of the optional readers, so the parts of this
+#vignette that use the bundled PNG/JPEG pictures are skipped without them.
+has_png <- has.image.reader("png")
+has_jpeg <- has.image.reader("jpeg")
 ```
 
 Note the y axis running downwards: the origin is at the top-left corner, which is the traditional coordinate system for images. **imager** uses this coordinate system consistently. Image data has class "cimg":
@@ -125,12 +129,17 @@ fpath <- system.file('extdata/parrots.png',package='imager')
 
 We're now ready to load the image:
 
-```{r}
+```{r eval=has_png}
 parrots <- load.image(fpath)
 plot(parrots)
 ```
 
-**imager** supports JPEG, PNG, TIFF and BMP natively - for other formats you'll need to install [ImageMagick](https://imagemagick.org/script/index.php).
+None of **imager**'s image readers are required dependencies, which keeps installation easy on systems where the underlying libraries are awkward to obtain (HPC clusters, for instance). BMP is read and written by CImg itself, so it always works, as does the `boats` picture above, which ships as an R dataset. PNG, JPEG and TIFF work when the suggested packages **png**, **jpeg** and **tiff** (or **readbitmap**) are installed; TIFF also works without any package if imager was built against libtiff. For anything else, install [ImageMagick](https://imagemagick.org). `has.image.reader("png")` tells you what is available, and `?load.image` has the details.
+
+```{r}
+has.image.reader("bmp")
+has.image.reader("png")
+```
 
 # Example 1: Histogram equalisation
 
@@ -228,6 +237,11 @@ desat <- function(im) RGBtoHSV(im) %>% imsplit("c") %>%
     modify_at(2,~ . / 2) %>% imappend("c") %>%
     HSVtoRGB
 
+```
+
+The same trick on one of the bundled pictures (this needs a PNG reader):
+
+```{r eval=has_png}
 #Split image into 3 blocks, reduce saturation in middle block, recombine
 im <- load.example("parrots")
 imsplit(im,"x",3) %>% modify_at(2,desat) %>%
@@ -349,9 +363,9 @@ We'll see more interesting uses for **ggplot2** later.
 
 # Blob detection/extraction of local maxima, denoising, scale-space
 
-Our goal will be to find the coordinates of the galaxies in this picture (I took the idea from the documentation for [scikit-image](https://scikit-image.org/))
+Our goal will be to find the coordinates of the galaxies in this picture (I took the idea from the documentation for [scikit-image](https://scikit-image.org/)). The Hubble picture is a JPEG, so this part of the vignette is skipped if no JPEG reader is installed.
 
-```{r}
+```{r eval=has_jpeg}
 hub <- load.example("hubble") %>% grayscale
 plot(hub,main="Hubble Deep Field")
 ```
@@ -468,7 +482,7 @@ get.centers(nblobs.denoised,"99%") %$% points(mx,my,col="red")
 
 We're ready to move on to the Hubble image. Here's a first naive attempt:
 
-```{r}
+```{r eval=has_jpeg}
 plot(hub)
 get.centers(hub,"99.8%") %$% points(mx,my,col="red")
 
@@ -476,7 +490,7 @@ get.centers(hub,"99.8%") %$% points(mx,my,col="red")
 
 Our detector is mostly picking up small objects. Adding blur results in:
 
-```{r}
+```{r eval=has_jpeg}
 plot(hub)
 isoblur(hub,5) %>% get.centers("99.8%") %$% points(mx,my,col="red")
 
@@ -484,7 +498,7 @@ isoblur(hub,5) %>% get.centers("99.8%") %$% points(mx,my,col="red")
 
 and the detector is now picking up large objects only. What if we want to detect objects at various scale? The solution is to aggregate the results over scale, which is what multiscale approaches do.
 
-```{r}
+```{r eval=has_jpeg}
  #Compute determinant at scale "scale".
 hessdet <- function(im,scale=1) isoblur(im,scale) %>% imhessian %$% { scale^2*(xx*yy - xy^2) }
 #Note the scaling (scale^2) factor in the determinant
@@ -493,7 +507,7 @@ plot(hessdet(hub,1),main="Determinant of the Hessian at scale 1")
 
 To view the results at different scales, we can use `ggplot`:
 
-```{r fig.width=7}
+```{r eval=has_jpeg, fig.width=7}
 library(purrr)
 
 #Get a data.frame with results at scale 2, 3 and 4
@@ -504,7 +518,7 @@ p+scale_x_continuous(expand=c(0,0))+scale_y_continuous(expand=c(0,0),trans=scale
 
 Scale-space theory suggests that we look for blobs [across scales](https://en.wikipedia.org/wiki/Blob_detection). It's easy:
 
-```{r}
+```{r eval=has_jpeg}
 scales <- seq(2,20,l=10)
 
 d.max <- map_il(scales,function(scale) hessdet(hub,scale)) %>% parmax
@@ -513,14 +527,14 @@ plot(d.max,main="Point-wise maximum across scales")
 
 `parmax` is another example of a reduction function, one that here takes the maximum value for each pixel across all scales. To find out which scale had the maximum value point-wise, we can use `which.parmax`:
 
-```{r fig.height=5,fig.width=5}
+```{r eval=has_jpeg, fig.height=5,fig.width=5}
 i.max <- map_il(scales,function(scale) hessdet(hub,scale)) %>% which.parmax
 plot(i.max,main="Index of the point-wise maximum \n across scales")
 ```
 
 So far this isn't too informative. It will be once we have labelled regions:
 
-```{r fig.height=7,fig.width=8}
+```{r eval=has_jpeg, fig.height=7,fig.width=8}
 #Get a data.frame of labelled regions
 labs <- d.max %>% threshold("96%") %>% label %>% as.data.frame
 #Add scale indices
@@ -541,7 +555,7 @@ Pixels are stored in the following manner: we scan the image beginning at the up
 All in all the different dimensions are represented in the x,y,z,c order. In R the object is represented as a 4D array. Here's an example with a grayscale image:
 
 ```{r dim_gray}
-parrots <- load.example("parrots")
+parrots <- if (has_png) load.example("parrots") else boats
 gray.parrots <- grayscale(parrots)
 dim(gray.parrots)
 ```
@@ -589,6 +603,7 @@ All functions are documented.
 ## Loading, saving, reading image information
 
 - load.image,save.image,iminfo,load.video,save.video,load.dir
+- has.image.reader: which image formats this installation can read/write
 - plot.cimg, display, display_list, play, renorm
 - width, height, depth, spectrum,nPix
 

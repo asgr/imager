@@ -23,7 +23,7 @@ liply <- function(lst,fun,axis,...)
 ##' @param axis axis for the split (e.g "c")
 ##' @param fun function to apply
 ##' @param ... extra arguments for function fun
-##' @examples
+##' @examplesIf has.image.reader("png")
 ##' \dontshow{cimg.limit.openmp()}
 ##' parrots <- load.example("parrots")
 ##' ilply(parrots,"c",mean) #mean luminance per colour channel

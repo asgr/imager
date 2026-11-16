@@ -23,11 +23,13 @@ imdraw(im, sprite, x = 1, y = 1, z = 1, opacity = 1)
 Draw image on another image
 }
 \examples{
+\dontshow{if (has.image.reader("png")) withAutoprint(\{ # examplesIf}
 \dontshow{cimg.limit.openmp()}
 im <- load.example("parrots")
 boats.small <- imresize(boats,.5)
 #I'm aware the result is somewhat ugly
 imdraw(im,boats.small,x=400,y=10,opacity=.7) \%>\% plot
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 imager.combine, for different ways of combining images

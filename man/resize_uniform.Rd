@@ -41,10 +41,12 @@ Resize image by a single scale factor. For non-uniform scaling and a wider range
 
 }}
 \examples{
+\dontshow{if (has.image.reader("png")) withAutoprint(\{ # examplesIf}
 \dontshow{cimg.limit.openmp()}
 im <- load.example("parrots")
 imresize(im,1/4) #Quarter size
 map_il(2:4,~ imresize(im,1/.)) \%>\% imappend("x") \%>\% plot
+\dontshow{\}) # examplesIf}
 }
 \references{
 For double-scale, triple-scale, etc. uses an anisotropic scaling algorithm described in: \url{http://www.scale2x.it/algorithm.html}. For half-scaling uses what the CImg doc describes as an "optimised filter", see resize_halfXY in CImg.h.

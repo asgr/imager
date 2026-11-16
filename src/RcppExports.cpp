@@ -1624,6 +1624,16 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// has_tiff
+bool has_tiff();
+RcppExport SEXP _imager_has_tiff() {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    rcpp_result_gen = Rcpp::wrap(has_tiff());
+    return rcpp_result_gen;
+END_RCPP
+}
 // px_split
 List px_split(LogicalVector im, char axis, int nb);
 RcppExport SEXP _imager_px_split(SEXP imSEXP, SEXP axisSEXP, SEXP nbSEXP) {
@@ -1761,6 +1771,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_imager_set_cimg_omp", (DL_FUNC) &_imager_set_cimg_omp, 1},
     {"_imager_set_omp_num_threads", (DL_FUNC) &_imager_set_omp_num_threads, 1},
     {"_imager_has_omp", (DL_FUNC) &_imager_has_omp, 0},
+    {"_imager_has_tiff", (DL_FUNC) &_imager_has_tiff, 0},
     {"_imager_px_split", (DL_FUNC) &_imager_px_split, 3},
     {NULL, NULL, 0}
 };

@@ -16,7 +16,7 @@
 ##' @examples
 ##' \dontshow{cimg.limit.openmp()}
 ##'
-##' fname <- system.file('extdata/tennis_sif.mpeg',package='imager')
+##' fname <- system.file('extdata/tennis_sif.mp4',package='imager')
 ##' ##Not run
 ##' ## load.video(fname) %>% play
 ##' ## load.video(fname,fps=10) %>% play
@@ -61,15 +61,24 @@ load.video.internal <- function(fname,maxSize=1,skip.to=0,frames=NULL,fps=NULL,e
 
 ##' Load image from file or URL
 ##'
-##' PNG, JPEG and BMP are supported via the readbitmap package, WEBP is
-##' supported via the webp package (with ImageMagick backup). You'll need to
-##' install ImageMagick for other formats. If the path is actually a URL, it
-##' should start with http(s) or ftp(s).
+##' BMP is read by CImg itself, so it always works. PNG, JPEG, TIFF and WEBP
+##' are read by the suggested packages png, jpeg, tiff, readbitmap and webp
+##' when they are installed. None of them are required: TIFF also works
+##' without any extra package if imager was built against libtiff, and
+##' ImageMagick (or GraphicsMagick) on the PATH covers every other format,
+##' including PNG and JPEG. Use \link{has.image.reader} to find out what is
+##' available on your system.
+##'
+##' If the path is actually a URL, it should start with http(s) or ftp(s).
 ##'
 ##' @param file path to file or URL
 ##' @return an object of class 'cimg'
 ##' @examples
 ##' \dontshow{cimg.limit.openmp()}
+##' #What can we read on this machine?
+##' has.image.reader("bmp")
+##' has.image.reader("png")
+##' @examplesIf has.image.reader("jpeg")
 ##' #Find path to example file from package
 ##' fpath <- system.file('extdata/Leonardo_Birds.jpg',package='imager')
 ##' im <- load.image(fpath)
@@ -82,53 +91,96 @@ load.image <- function(file) wrap.url(file,load.image.internal)
 load.image.internal <- function(file)
 {
     fext <- tolower(fileext(file))
-    if (fext %in% c('png','bmp','jpeg','jpg'))
+    bmp <- read.with.package(file,fext)
+    if (is.null(bmp)) return(load.native(file,fext)) #No reader installed, use CImg
+    if (!is.null(attr(bmp,"header"))) #readbitmap returns BMP data in 0-255
     {
-        bmp <- read.bitmap(file)
-        ##bmp <- try(read.bitmap(file),silent=TRUE)
-        ## if (class(bmp) != "try-error") #Loaded succesfully
-        ## {
-        if (!is.null(attr(bmp,"header"))) #We have a BMP file, rescale
-        {
-            bmp <- bmp/255
-        }
-        if (length(dim(bmp)) == 3) #Has colour
-        {
-            dim(bmp) <- c(dim(bmp)[1:2],1,dim(bmp)[3]) #Make array 4D
-        }
-        else
-        {
-            dim(bmp) <- c(dim(bmp),1,1)
-        }
-        bmp <- cimg(bmp) %>% mirror("x") %>% imrotate(-90)
-        bmp
+        bmp <- bmp/255
     }
-    else if (fext %in% "webp" && requireNamespace("webp", quietly = TRUE)) {
-        bmp <- webp::read_webp(source = file, numeric = TRUE)
-        dim(bmp) <- c(dim(bmp)[1:2],1,dim(bmp)[3]) #Make array 4D
-        bmp <- cimg(bmp) %>% mirror("x") %>% imrotate(-90)
-        bmp
-    }
-    else #Loading with read.bitmap has failed, try with ImageMagick
-    {
-        if (has.magick())
-        {
-            is.url <- grepl("^(http|ftp)s?://", file)
-            if (is.url)
-            {
-                load_image(file)/255
-            }
-            else
-            {
-                file <- normalizePath(file,mustWork=TRUE)
-                load_image(file)/255
-            }
-        }
-        else
-        {
-            stop("Unsupported file format. Please convert to jpeg/png/bmp or install image magick")
-        }
-    }
+    d <- dim(bmp)
+    dim(bmp) <- if (length(d) == 3) c(d[1:2],1,d[3]) else c(d,1,1) #Make array 4D
+    cimg(bmp) %>% mirror("x") %>% imrotate(-90)
+}
+
+# Suggested packages able to read a format, in order of preference. readbitmap
+# comes last because it depends on bmp/jpeg/png/tiff itself, which is exactly
+# the dependency chain we want to keep optional.
+image_readers <- function(fext)
+{
+    switch(fext,
+           png = c("png","readbitmap"),
+           jpg = , jpeg = c("jpeg","readbitmap"),
+           bmp = "readbitmap",
+           tif = , tiff = c("tiff","readbitmap"),
+           webp = "webp",
+           character(0))
+}
+
+# Formats CImg reads on its own, with no external library or R package
+native.readable <- c("bmp","pnm","ppm","pgm","pbm","pnk","pfm","cimg",
+                     "inr","hdr","nii","pan","asc","dlm","csv","txt")
+
+first.available <- function(pkgs)
+{
+    hit <- pkgs[vapply(pkgs,function(p) requireNamespace(p,quietly=TRUE),logical(1))]
+    if (length(hit)) hit[[1]] else NULL
+}
+
+read.with.package <- function(file,fext)
+{
+    pkg <- first.available(image_readers(fext))
+    if (is.null(pkg)) return(NULL)
+    switch(pkg,
+           png = png::readPNG(file),
+           jpeg = jpeg::readJPEG(file),
+           tiff = tiff::readTIFF(file),
+           readbitmap = readbitmap::read.bitmap(file),
+           webp = webp::read_webp(source=file,numeric=TRUE))
+}
+
+# CImg reads BMP and friends natively, TIFF when built against libtiff, and
+# anything else by shelling out to ImageMagick/GraphicsMagick. It reports
+# failures as C++ exceptions that are unhelpful to an R user, so translate them.
+load.native <- function(file,fext)
+{
+    out <- tryCatch(load_image(normalizePath(file,mustWork=TRUE))/255,error=function(e) NULL)
+    if (is.null(out)) stop(missing.io.msg(fext,"load"),call.=FALSE)
+    out
+}
+
+missing.io.msg <- function(fext,action)
+{
+    pkgs <- if (action == "save") image_writers(fext) else image_readers(fext)
+    hint <- if (length(pkgs)) sprintf("Install the %s package, or install",paste(pkgs,collapse=" or ")) else "Install"
+    sprintf("Cannot %s '%s' files. %s ImageMagick (or GraphicsMagick) to support this format.",
+            action,fext,hint)
+}
+
+##' Check whether imager can read or write an image format
+##'
+##' imager's image readers are all optional, so that it installs on systems
+##' where the underlying libraries are hard to come by (HPC clusters, for
+##' instance). This function reports what is actually usable right now, taking
+##' into account the suggested packages that are installed, the formats CImg
+##' handles itself, and whether ImageMagick is on the PATH.
+##' @param format a file extension, with or without a leading dot (e.g. "png")
+##' @param action "load" (default) or "save"
+##' @return TRUE if the format can be read (or written), FALSE otherwise
+##' @seealso load.image, save.image
+##' @examples
+##' has.image.reader("bmp") #Always TRUE, CImg reads BMP itself
+##' has.image.reader("png") #TRUE if png/readbitmap is installed, or ImageMagick
+##' has.image.reader("tiff","save")
+##' @export
+has.image.reader <- function(format,action=c("load","save"))
+{
+    action <- match.arg(action)
+    fext <- tolower(sub("^\\.","",format))
+    pkgs <- if (action == "save") image_writers(fext) else image_readers(fext)
+    if (!is.null(first.available(pkgs))) return(TRUE)
+    if (action == "load" && (fext %in% native.readable || (fext %in% c("tif","tiff") && has_tiff()))) return(TRUE)
+    if (action == "save" && (fext == "bmp" || (fext %in% c("tif","tiff") && has_tiff()))) return(TRUE)
+    has.magick()
 }
 
 
@@ -166,50 +218,36 @@ has.ffmpeg <- function()
 
 has.magick <- function()
 {
-    test.magick <- c('conjure','montage','magick') %>% Sys.which %>% map_lgl(function(v) nchar(v) > 0)
+    #CImg shells out to 'magick' or 'convert' (ImageMagick) and 'gm'
+    #(GraphicsMagick), so those are the binaries that actually matter here.
+    test.magick <- c('magick','convert','gm') %>% Sys.which %>% map_lgl(function(v) nchar(v) > 0)
     any(test.magick)
 }
-
-convert.im.fromPNG <- function(A)
-    {
-        A <- A*255
-        d <- dim(A)
-        if (length(d) == 3)
-            {
-                dim(A) <- c(d[1:2],1,d[3])
-            }
-        else
-            {
-                dim(A) <- c(d[1:2],1,1)
-            }
-        mirror(A,"x") %>% imrotate(-90)
-    }
-
-load.png <- function(file)
-    {
-        png::readPNG(file) %>% convert.im.fromPNG
-    }
-
-load.jpeg <- function(file)
-    {
-        jpeg::readJPEG(file) %>% convert.im.fromPNG
-    }
 
 
 
 ##' Save image
 ##'
-##' You'll need ImageMagick for formats other than PNG and JPEG.
+##' BMP is written by CImg itself, so it always works. PNG, JPEG and TIFF are
+##' written by the suggested packages png, jpeg and tiff when they are
+##' installed. None of them are required: TIFF also works without any extra
+##' package if imager was built against libtiff, and ImageMagick (or
+##' GraphicsMagick) on the PATH covers every other format, including PNG and
+##' JPEG. Use \link{has.image.reader} to find out what is available.
 ##'
 ##' @param im an image (of class cimg)
 ##' @param file path to file. The format is determined by the file's name
 ##' @param quality (JPEG only) default 0.7. Higher quality means less compression.
 ##' @return nothing
-##' @seealso save.video
+##' @seealso save.video, has.image.reader
 ##' @export
 ##' @examples
 ##' \dontshow{cimg.limit.openmp()}
-##' #Create temporary file
+##' #BMP needs no extra package
+##' tmpF <- tempfile(fileext=".bmp")
+##' save.image(boats,tmpF)
+##' load.image(tmpF) %>% plot
+##' @examplesIf has.image.reader("png","save")
 ##' tmpF <- tempfile(fileext=".png")
 ##' #Save boats image
 ##' save.image(boats,tmpF)
@@ -226,36 +264,36 @@ save.image <- function(im,file,quality=.7)
     {
         stop("Please provide a file extension (.png, .jpeg, etc.)")
     }
-    if (ftype == "png")
-    {
-        save.png(im,file)
-    }
-    else if (ftype == "jpeg" | ftype == "jpg")
-    {
-            save.jpeg(im,file,quality=quality)
-    }
-    else
-    {
-        if (has.magick())
-        {
-            save_image(255*im,path.expand(file))
-        }
-        else
-        {
-            stop("Unsupported output file format. Use jpg/png or install ImageMagick")
-        }
-    }
+    ftype <- tolower(ftype)
+    pkg <- first.available(image_writers(ftype))
+    if (is.null(pkg)) return(save.native(im,file,ftype))
+    A <- convert.im.toPNG(im)
+    switch(pkg,
+           png = png::writePNG(A,file),
+           jpeg = jpeg::writeJPEG(A,file,quality=quality),
+           tiff = tiff::writeTIFF(A,file))
+    invisible(NULL)
 }
 
-save.png <- function(im,file)
-    {
-        convert.im.toPNG(im) %>% png::writePNG(file)
-    }
+# Suggested packages able to write a format. BMP and (with libtiff) TIFF are
+# handled by CImg, so they need no package at all.
+image_writers <- function(fext)
+{
+    switch(fext,
+           png = "png",
+           jpg = , jpeg = "jpeg",
+           tif = , tiff = "tiff",
+           character(0))
+}
 
-save.jpeg <- function(im,file,quality=.7)
-    {
-        convert.im.toPNG(im) %>% jpeg::writeJPEG(file,quality=quality)
-    }
+save.native <- function(im,file,fext)
+{
+    if (!has.image.reader(fext,"save")) stop(missing.io.msg(fext,"save"),call.=FALSE)
+    if (any(im > 1) | any(im < 0)) im <- rn(im)
+    ok <- tryCatch({ save_image(255*im,path.expand(file)); TRUE },error=function(e) FALSE)
+    if (!ok) stop(missing.io.msg(fext,"save"),call.=FALSE)
+    invisible(NULL)
+}
 
 convert.im.toPNG <- function(A)
     {
@@ -275,10 +313,13 @@ convert.im.toPNG <- function(A)
 ##'
 ##' Imager ships with five test pictures and a video. Two (parrots and boats) come from the [Kodak set](http://r0k.us/graphics/kodak/). Another (birds) is a sketch of birds by Leonardo, from Wikimedia. The "coins" image comes from scikit-image. The Hubble Deep field (hubble) is from Wikimedia.
 ##' The test video ("tennis") comes from [xiph.org](https://media.xiph.org/video/derf/)'s collection.
+##' The pictures are stored as PNG and JPEG, so loading them needs one of the
+##' optional readers (see \link{has.image.reader}). The "boats" picture is also
+##' available as the \link{boats} dataset, which needs no reader at all.
 ##' @param name name of the example
 ##' @return an image
 ##' @author Simon Barthelme
-##' @examples
+##' @examplesIf has.image.reader("png") && has.image.reader("jpeg")
 ##' \dontshow{cimg.limit.openmp()}
 ##' load.example("hubble") %>% plot
 ##' load.example("birds") %>% plot
@@ -313,6 +354,8 @@ load.example <- function(name)
 ##' You need to have ffmpeg on your path for this to work. This function uses ffmpeg to combine individual frames into a video.
 ##' save.video can be called directly with an image or image list as input.
 ##' make.video takes as argument a directory that contains a sequence of images representing individual frames to be combined into a video.
+##' save.video writes PNG frames if the png package is installed, and BMP
+##' frames otherwise (BMP needs no extra package).
 ##' @param im an image or image list
 ##' @param fname name of the output file. The format is determined automatically from the name (example "a.mpeg" will have MPEG format)
 ##' @param dname name of a directory containing individual files
@@ -355,9 +398,13 @@ save.video <- function(im,fname,...)
     tryCatch({
         dir.create(dd)
         im <- if (is.imlist(im)) im else imsplit(im,"z")
-        nms <- sprintf("%s/image-%i.png",dd,seq_along(im))
-        purrr::map2(im,nms,~ save.png(.x,.y))
-        make.video(dname=dd,fname=fname,...)
+        #PNG frames need the png package; BMP is written by CImg itself
+        ext <- if (requireNamespace("png",quietly=TRUE)) "png" else "bmp"
+        nms <- sprintf("%s/image-%i.%s",dd,seq_along(im),ext)
+        purrr::map2(im,nms,~ save.image(.x,.y))
+        args <- list(dname=dd,fname=fname,...)
+        if (is.null(args$pattern)) args$pattern <- sprintf("image-%%d.%s",ext)
+        do.call(make.video,args)
     }, finally=unlink(dd,recursive=TRUE))
 
 }
@@ -377,7 +424,7 @@ fileext <- function(f)
 ##' @param quiet if TRUE, loading errors are quiet. If FALSE, they are displayed. Default FALSE
 ##' @return an image list
 ##' @author Simon Barthelme
-##' @examples
+##' @examplesIf has.image.reader("png") && has.image.reader("jpeg")
 ##' \dontshow{cimg.limit.openmp()}
 ##' path <- system.file(package="imager") %>% paste0("/extdata")
 ##' load.dir(path)
