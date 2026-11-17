@@ -131,7 +131,7 @@ It's also common to want to split a pixset into contiguous regions: use split_co
 
 ```{r}
 sp <- split_connected(px) #returns an imlist 
-plot(sp[1:4])
+plot(head(sp, 4))
 sp
 ```
 
