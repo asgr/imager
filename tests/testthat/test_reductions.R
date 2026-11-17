@@ -2,6 +2,21 @@ library(imager)
 
 cimg.limit.openmp()
 
+test_that("imlist to data.frame works without dplyr",{
+    gr <- imgradient(boats,"xy") %>% setNames(c("dx","dy"))
+    df <- as.data.frame(gr)
+    expect_equal(names(df),c("im","x","y","cc","value"))
+    expect_equal(unique(df$im),c("dx","dy"))
+    expect_equal(nrow(df),2*nPix(boats))
+})
+
+test_that("idply works without dplyr",{
+    out <- idply(boats,"c",mean)
+    expect_equal(names(out)[1],".id")
+    expect_equal(out$.id,names(imsplit(boats,"c")))
+    expect_equal(out[[2]],unname(map_dbl(imsplit(boats,"c"),mean)))
+})
+
 test_that("add_average_mult",
 {
     im <- imnoise(5,5)

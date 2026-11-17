@@ -16,7 +16,8 @@ idply(im, axis, fun, ...)
 \item{...}{extra arguments to function fun}
 }
 \description{
-Shorthand for imsplit followed by purrr::map_df
+Shorthand for imsplit followed by a map over the parts, row-binding the
+results into a data.frame (like plyr::ldply used to).
 }
 \examples{
 \dontshow{cimg.limit.openmp()}

@@ -125,7 +125,15 @@ as.imlist.cimg <- function(obj,...) list(obj) %>% as.imlist.list
 as.data.frame.imlist <- function(x,...,index="im")
 {
     if (is.null(names(x))) names(x) <- 1:length(x)
-    map_df(x,function(v) as.data.frame(v,...),.id=index)
+    #Base R row-binding instead of purrr::map_df, which needs dplyr (a Suggests)
+    parts <- lapply(names(x),function(nm) {
+        d <- as.data.frame(x[[nm]],...)
+        d[[index]] <- nm
+        d
+    })
+    out <- do.call(rbind,parts)
+    rownames(out) <- NULL
+    out[,c(index,setdiff(names(out),index)),drop=FALSE]
 }
 
 ##' @export

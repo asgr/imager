@@ -34,7 +34,8 @@ ilply <- function(im,axis,fun,...)
     }
 ##' Split an image along axis, map function, return a data.frame
 ##'
-##' Shorthand for imsplit followed by purrr::map_df
+##' Shorthand for imsplit followed by a map over the parts, row-binding the
+##' results into a data.frame (like plyr::ldply used to).
 ##' @param im image
 ##' @param axis axis for the split (e.g "c")
 ##' @param fun function to apply
@@ -45,8 +46,21 @@ ilply <- function(im,axis,fun,...)
 ##' @export
 idply <- function(im,axis,fun,...)
     {
-    # Extra as.data.frame(t(...)) added to force output to resemble plyr::ldply
-        imsplit(im,axis) %>% purrr::map_df(function(x, ...) as.data.frame(t(fun(x, ...))), .id = ".id")
+        #Base R instead of purrr::map_df, which needs dplyr (a Suggests).
+        #as.data.frame(t(...)) forces output to resemble plyr::ldply
+        l <- imsplit(im,axis)
+        nms <- if (is.null(names(l))) as.character(seq_along(l)) else names(l)
+        parts <- lapply(seq_along(l),function(i) {
+            d <- as.data.frame(t(fun(l[[i]],...)))
+            d$.id <- nms[i]
+            d
+        })
+        out <- do.call(rbind,parts)
+        rownames(out) <- NULL
+        out <- out[,c(".id",setdiff(names(out),".id")),drop=FALSE]
+        #t() leaves names on the values; drop them to match map_df output
+        out[-1] <- lapply(out[-1],unname)
+        out
     }
 
 ##' Split an image, apply function, recombine the results as an image

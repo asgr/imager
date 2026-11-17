@@ -15,5 +15,6 @@ Return locations in pixel set
 \examples{
 \dontshow{cimg.limit.openmp()}
 #All pixel locations with value greater than .99
-where(boats > .99) 
+#Namespaced because purrr also exports a where() function
+imager::where(boats > .99) 
 }
