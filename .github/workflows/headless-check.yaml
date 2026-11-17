@@ -34,6 +34,11 @@ jobs:
       _R_CHECK_DEPENDS_ONLY_: true
       # Do not let a suggested-package absence turn into a check error.
       _R_CHECK_FORCE_SUGGESTS_: false
+      # R CMD build runs ./cleanup (removing src/Makevars), so the later
+      # R CMD check install re-runs configure. Autoconf reads these cache
+      # variables from the environment, keeping X11 detection forced off there.
+      ac_cv_have_x: "have_x=no"
+      ac_cv_lib_X11_XOpenDisplay: "no"
 
     steps:
       - uses: actions/checkout@v4
@@ -58,7 +63,7 @@ jobs:
       # below uses exactly this configuration.
       - name: Configure without X11 and verify graceful fallback
         run: |
-          ./configure ac_cv_have_x="have_x=no" ac_cv_lib_X11_XOpenDisplay=no
+          ./configure
           grep -q 'cimg_display=0' src/Makevars \
             || { echo "::error::configure did not disable display support"; exit 1; }
           if grep -q '\-lX11' src/Makevars; then
